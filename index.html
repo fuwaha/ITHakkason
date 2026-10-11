@@ -7,6 +7,18 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <section id="loginScreen" class="login-screen">
+    <form id="loginForm" class="login-card">
+      <p class="eyebrow">LICENSE MANAGEMENT</p>
+      <h1>ログイン</h1>
+      <p class="login-description">管理画面を利用するにはログインしてください。</p>
+      <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" value="admin@example.jp" required></div>
+      <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" placeholder="demo1234" required></div>
+      <p id="loginError" class="form-error" hidden>メールアドレスまたはパスワードが違います。</p>
+      <button class="primary-button login-button" type="submit">ログイン</button>
+      <p class="login-hint">デモ用: admin@example.jp / demo1234</p>
+    </form>
+  </section>
   <header class="topbar">
     <div class="brand">ライセンス一元管理</div>
     <div class="topbar-actions">
@@ -58,13 +70,13 @@
       </section>
 
       <section id="licenses" class="view">
-        <div class="page-heading"><div><p class="eyebrow">LICENSES</p><h1>ライセンス管理</h1><p>契約数、利用数、更新日を管理します。</p></div><button class="primary-button" id="addLicenseButton" type="button">＋ ライセンスを登録</button></div>
+        <div class="page-heading"><div><p class="eyebrow">LICENSES</p><h1>ライセンス管理</h1><p>契約数、利用数、更新日を管理します。</p></div><div class="heading-actions"><button class="secondary-button" id="exportLicensesButton" type="button">CSV出力</button><button class="primary-button" id="addLicenseButton" type="button">＋ ライセンスを登録</button></div></div>
         <div class="toolbar"><input class="search" id="licenseSearch" type="search" placeholder="プラン名・ツール名で検索"><span id="licenseCount" class="result-count"></span></div>
         <div class="panel table-wrap"><table><thead><tr><th>ライセンス名</th><th>対象ツール</th><th>契約数</th><th>利用数</th><th>更新日</th><th>ステータス</th><th></th></tr></thead><tbody id="licensesTable"></tbody></table></div>
       </section>
 
       <section id="members" class="view">
-        <div class="page-heading"><div><p class="eyebrow">MEMBERS</p><h1>利用者管理</h1><p>利用者の登録情報と割り当て状況を管理します。</p></div><button class="primary-button" id="addMemberButton" type="button">＋ 利用者を登録</button></div>
+        <div class="page-heading"><div><p class="eyebrow">MEMBERS</p><h1>利用者管理</h1><p>利用者の登録情報と割り当て状況を管理します。</p></div><div class="heading-actions"><label class="secondary-button file-button">CSV取込<input id="memberImport" type="file" accept=".csv" hidden></label><button class="secondary-button" id="exportMembersButton" type="button">CSV出力</button><button class="primary-button" id="addMemberButton" type="button">＋ 利用者を登録</button></div></div>
         <div class="toolbar"><input class="search" id="memberSearch" type="search" placeholder="氏名・メールアドレスで検索"><span id="memberCount" class="result-count"></span></div>
         <div class="panel table-wrap"><table><thead><tr><th>氏名</th><th>メールアドレス</th><th>社員番号</th><th>部署</th><th>割り当て数</th><th>ステータス</th><th></th></tr></thead><tbody id="membersTable"></tbody></table></div>
       </section>

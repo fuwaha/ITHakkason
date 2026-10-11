@@ -34,6 +34,31 @@ const memberById = (id) => state.members.find((member) => member.id === Number(i
 const formatDate = (date) => date ? new Date(`${date}T00:00:00`).toLocaleDateString("ja-JP") : "-";
 const statusLabel = (status) => ({ active: "有効", assigned: "割り当て中", released: "返却済み", inactive: "無効" }[status] || status);
 const badge = (status, extra = "") => `<span class="badge ${extra || status}">${esc(statusLabel(status))}</span>`;
+const authenticated = () => sessionStorage.getItem("licenseManagerAuthenticated") === "true";
+
+function updateAuthView() {
+  $("#loginScreen").classList.toggle("hidden", authenticated());
+}
+
+function downloadCsv(filename, headers, rows) {
+  const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }));
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function validateAssignment(memberId, licenseId) {
+  const license = licenseById(licenseId);
+  const member = memberById(memberId);
+  if (!member || member.status !== "active") return "在籍中の利用者を選択してください。";
+  if (!license || license.status !== "active") return "有効なライセンスを選択してください。";
+  if (state.assignments.some((item) => item.memberId === memberId && item.licenseId === licenseId && item.status === "assigned")) return "この利用者には同じライセンスが既に割り当てられています。";
+  const used = state.assignments.filter((item) => item.licenseId === licenseId && item.status === "assigned").length;
+  if (used >= license.quantity) return "利用可能なライセンス数を超えているため、割り当てできません。";
+  return "";
+}
 
 function showView(view) {
   document.querySelectorAll(".view").forEach((element) => element.classList.toggle("active", element.id === view));
@@ -126,6 +151,10 @@ $("#entityForm").addEventListener("submit", (event) => {
   if (event.submitter?.value === "cancel") return;
   event.preventDefault();
   const values = Object.fromEntries(new FormData(event.currentTarget));
+  if (formContext.type === "assignment" && !formContext.id) {
+    const validationMessage = validateAssignment(Number(values.memberId), Number(values.licenseId));
+    if (validationMessage) return notify(validationMessage, true);
+  }
   const collection = { tool: "tools", license: "licenses", member: "members", assignment: "assignments" }[formContext.type];
   if (formContext.id) Object.assign(state[collection].find((item) => item.id === formContext.id), values);
   else state[collection].push({ id: nextId(state[collection]), ...(formContext.type === "tool" ? { status: "active" } : formContext.type === "license" ? { status: "active", quantity: Number(values.quantity), toolId: Number(values.toolId) } : formContext.type === "member" ? { status: "active" } : { memberId: Number(values.memberId), licenseId: Number(values.licenseId), status: "assigned", assignedBy: "管理者" }) , ...values });
@@ -166,4 +195,39 @@ $("#addLicenseButton").addEventListener("click", () => openForm("license"));
 $("#addMemberButton").addEventListener("click", () => openForm("member"));
 $("#addAssignmentButton").addEventListener("click", () => openForm("assignment"));
 ["toolSearch", "licenseSearch", "memberSearch"].forEach((id) => $(`#${id}`).addEventListener("input", render));
+$("#loginForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const email = $("#loginEmail").value.trim().toLowerCase();
+  const password = $("#loginPassword").value;
+  const valid = email === "admin@example.jp" && password === "demo1234";
+  $("#loginError").hidden = valid;
+  if (valid) {
+    sessionStorage.setItem("licenseManagerAuthenticated", "true");
+    updateAuthView();
+    notify("ログインしました");
+  }
+});
+$("#logoutButton").addEventListener("click", () => {
+  sessionStorage.removeItem("licenseManagerAuthenticated");
+  updateAuthView();
+});
+$("#exportLicensesButton").addEventListener("click", () => downloadCsv("licenses.csv", ["ライセンス名", "対象ツール", "契約数", "利用数", "更新日", "ステータス"], state.licenses.map((license) => [license.name, toolById(license.toolId)?.name, license.quantity, state.assignments.filter((item) => item.licenseId === license.id && item.status === "assigned").length, license.renewal, statusLabel(license.status)])));
+$("#exportMembersButton").addEventListener("click", () => downloadCsv("members.csv", ["氏名", "メールアドレス", "社員番号", "部署", "ステータス"], state.members.map((member) => [member.name, member.email, member.number, member.department, statusLabel(member.status)])));
+$("#memberImport").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = String(reader.result).replace(/^\ufeff/, "").split(/\r?\n/).filter(Boolean);
+    const imported = lines.slice(1).map((line) => line.split(",").map((value) => value.trim().replace(/^"|"$/g, ""))).filter((row) => row.length >= 4 && row[0]);
+    imported.forEach(([name, email, number, department]) => {
+      if (!state.members.some((member) => member.email === email || member.number === number)) state.members.push({ id: nextId(state.members), name, email, number, department, status: "active" });
+    });
+    addLog("CSV取込", `${imported.length}件の利用者`);
+    save(); render(); notify(`${imported.length}件の利用者を取り込みました`);
+    event.target.value = "";
+  };
+  reader.readAsText(file, "UTF-8");
+});
+updateAuthView();
 render();
