@@ -3,46 +3,137 @@
 // =====================================================
 const seed = {
   tools: [
-    { id: 1, name: "Microsoft 365", provider: "Microsoft", category: "業務ツール", status: "active" },
-    { id: 2, name: "Adobe Creative Cloud", provider: "Adobe", category: "デザイン", status: "active" },
-    { id: 3, name: "Slack", provider: "Salesforce", category: "コミュニケーション", status: "active" }
+    {
+      id: 1,
+      name: "Microsoft 365",
+      provider: "Microsoft",
+      category: "業務ツール",
+      status: "active",
+    },
+    {
+      id: 2,
+      name: "Adobe Creative Cloud",
+      provider: "Adobe",
+      category: "デザイン",
+      status: "active",
+    },
+    {
+      id: 3,
+      name: "Slack",
+      provider: "Salesforce",
+      category: "コミュニケーション",
+      status: "active",
+    },
   ],
   licenses: [
-    { id: 1, toolId: 1, name: "Microsoft 365 Business Standard", quantity: 100, renewal: "2026-11-30", status: "active" },
-    { id: 2, toolId: 2, name: "Creative Cloud Pro", quantity: 20, renewal: "2026-12-15", status: "active" },
-    { id: 3, toolId: 3, name: "Slack Pro", quantity: 50, renewal: "2027-03-31", status: "active" }
+    {
+      id: 1,
+      toolId: 1,
+      name: "Microsoft 365 Business Standard",
+      quantity: 100,
+      renewal: "2026-11-30",
+      status: "active",
+    },
+    {
+      id: 2,
+      toolId: 2,
+      name: "Creative Cloud Pro",
+      quantity: 20,
+      renewal: "2026-12-15",
+      status: "active",
+    },
+    { id: 3, toolId: 3, name: "Slack Pro", quantity: 50, renewal: "2027-03-31", status: "active" },
   ],
   members: [
-    { id: 1, name: "田中 太郎", email: "t.tanaka@example.jp", number: "E001", department: "情報システム部", status: "active" },
-    { id: 2, name: "佐藤 花子", email: "h.sato@example.jp", number: "E002", department: "企画部", status: "active" },
-    { id: 3, name: "鈴木 一郎", email: "i.suzuki@example.jp", number: "E003", department: "営業部", status: "active" }
+    {
+      id: 1,
+      name: "田中 太郎",
+      email: "t.tanaka@example.jp",
+      number: "E001",
+      department: "情報システム部",
+      status: "active",
+    },
+    {
+      id: 2,
+      name: "佐藤 花子",
+      email: "h.sato@example.jp",
+      number: "E002",
+      department: "企画部",
+      status: "active",
+    },
+    {
+      id: 3,
+      name: "鈴木 一郎",
+      email: "i.suzuki@example.jp",
+      number: "E003",
+      department: "営業部",
+      status: "active",
+    },
   ],
   assignments: [
-    { id: 1, licenseId: 1, memberId: 1, assignedAt: "2026-10-01", status: "assigned", assignedBy: "管理者" },
-    { id: 2, licenseId: 2, memberId: 2, assignedAt: "2026-10-02", status: "assigned", assignedBy: "管理者" },
-    { id: 3, licenseId: 1, memberId: 3, assignedAt: "2026-10-03", status: "assigned", assignedBy: "管理者" }
+    {
+      id: 1,
+      licenseId: 1,
+      memberId: 1,
+      assignedAt: "2026-10-01",
+      status: "assigned",
+      assignedBy: "管理者",
+    },
+    {
+      id: 2,
+      licenseId: 2,
+      memberId: 2,
+      assignedAt: "2026-10-02",
+      status: "assigned",
+      assignedBy: "管理者",
+    },
+    {
+      id: 3,
+      licenseId: 1,
+      memberId: 3,
+      assignedAt: "2026-10-03",
+      status: "assigned",
+      assignedBy: "管理者",
+    },
   ],
   logs: [
-    { id: 1, action: "初期データを読み込み", target: "システム", at: "2026-10-11 15:00", user: "管理者" }
-  ]
+    {
+      id: 1,
+      action: "初期データを読み込み",
+      target: "システム",
+      at: "2026-10-11 15:00",
+      user: "管理者",
+    },
+  ],
 };
 
 // =====================================================
 // 状態管理・共通ヘルパー
 // =====================================================
-const state = JSON.parse(localStorage.getItem("licenseManagerState") || "null") || seed;
+const loadState = () => {
+  try {
+    return JSON.parse(localStorage.getItem("licenseManagerState") || "null") || seed;
+  } catch {
+    return seed; // 保存データが壊れていても起動できるようにする
+  }
+};
+const state = loadState();
 let formContext = null;
 
 const $ = (selector) => document.querySelector(selector);
 
 const esc = (value) =>
-  String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 
 const save = () => localStorage.setItem("licenseManagerState", JSON.stringify(state));
 
@@ -60,24 +151,40 @@ const statusLabel = (status) =>
     active: "有効",
     assigned: "割り当て中",
     released: "返却済み",
-    inactive: "無効"
-  }[status] || status);
+    inactive: "無効",
+  })[status] || status;
 
 const badge = (status, extra = "") =>
   `<span class="badge ${extra || status}">${esc(statusLabel(status))}</span>`;
 
 const authenticated = () => sessionStorage.getItem("licenseManagerAuthenticated") === "true";
 
+// ローカル時間（日本時間など）での日付・日時
+const todayString = () => new Date().toLocaleDateString("sv-SE");
+const nowString = () => new Date().toLocaleString("sv-SE").slice(0, 16);
+
+const daysUntil = (date) =>
+  Math.ceil((new Date(`${date}T00:00:00`) - new Date(`${todayString()}T00:00:00`)) / 86400000);
+
+const renewalBadge = (date) => {
+  const days = daysUntil(date);
+  if (days < 0) return `<span class="badge warning">期限切れ</span>`;
+  return `<span class="badge ${days <= 30 ? "warning" : "active"}">あと${days}日</span>`;
+};
+
 function updateAuthView() {
   $("#loginScreen").classList.toggle("hidden", authenticated());
 }
 
+// CSVの1セル分（Excelで数式として実行されないよう先頭の記号を無効化）
+const csvCell = (value) => {
+  let text = String(value ?? "");
+  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+};
+
 function downloadCsv(filename, headers, rows) {
-  const csv = [headers, ...rows]
-    .map((row) =>
-      row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")
-    )
-    .join("\r\n");
+  const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
 
   const link = document.createElement("a");
   link.href = URL.createObjectURL(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }));
@@ -85,6 +192,10 @@ function downloadCsv(filename, headers, rows) {
   link.click();
   URL.revokeObjectURL(link.href);
 }
+
+const usedCount = (licenseId) =>
+  state.assignments.filter((item) => item.licenseId === licenseId && item.status === "assigned")
+    .length;
 
 // 割り当て可否のチェック（問題なければ空文字を返す）
 function validateAssignment(memberId, licenseId) {
@@ -100,16 +211,14 @@ function validateAssignment(memberId, licenseId) {
   if (
     state.assignments.some(
       (item) =>
-        item.memberId === memberId &&
-        item.licenseId === licenseId &&
-        item.status === "assigned"
+        item.memberId === memberId && item.licenseId === licenseId && item.status === "assigned",
     )
   ) {
     return "この利用者には同じライセンスが既に割り当てられています。";
   }
 
   const used = state.assignments.filter(
-    (item) => item.licenseId === licenseId && item.status === "assigned"
+    (item) => item.licenseId === licenseId && item.status === "assigned",
   ).length;
   if (used >= license.quantity) {
     return "利用可能なライセンス数を超えているため、割り当てできません。";
@@ -131,12 +240,15 @@ function showView(view) {
   render();
 }
 
+let noticeTimer;
+
 function notify(message, error = false) {
   const element = $("#notice");
   element.textContent = message;
   element.className = `notice${error ? " error" : ""}`;
   element.hidden = false;
-  setTimeout(() => {
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => {
     element.hidden = true;
   }, 2600);
 }
@@ -155,7 +267,7 @@ function renderDashboard() {
     ["登録ツール", state.tools.length, "管理対象のサービス"],
     ["ライセンス総数", total, "契約済みライセンス"],
     ["割り当て済み", assigned, "現在利用中"],
-    ["利用可能数", total - assigned, "割り当て可能"]
+    ["利用可能数", total - assigned, "割り当て可能"],
   ]
     .map(([label, value, note]) =>
       [
@@ -163,8 +275,8 @@ function renderDashboard() {
         `<div class="metric-label">${label}</div>`,
         `<div class="metric-value">${value}</div>`,
         `<div class="metric-note">${note}</div>`,
-        `</div>`
-      ].join("")
+        `</div>`,
+      ].join(""),
     )
     .join("");
 
@@ -177,9 +289,9 @@ function renderDashboard() {
           `<div class="list-main">${esc(license.name)}</div>`,
           `<div class="list-sub">${esc(toolById(license.toolId)?.name)} / 更新日 ${formatDate(license.renewal)}</div>`,
           `</div>`,
-          badge("warning", "warning"),
-          `</div>`
-        ].join("")
+          renewalBadge(license.renewal),
+          `</div>`,
+        ].join(""),
       )
       .join("") || '<div class="empty">更新予定はありません</div>';
 
@@ -195,8 +307,8 @@ function renderDashboard() {
           `<div class="list-sub">${esc(log.target)} ・ ${esc(log.user)}</div>`,
           `</div>`,
           `<div class="list-sub">${esc(log.at)}</div>`,
-          `</div>`
-        ].join("")
+          `</div>`,
+        ].join(""),
       )
       .join("") || '<div class="empty">操作履歴はありません</div>';
 }
@@ -204,7 +316,7 @@ function renderDashboard() {
 function renderTools() {
   const query = ($("#toolSearch")?.value || "").toLowerCase();
   const rows = state.tools.filter((tool) =>
-    `${tool.name} ${tool.provider}`.toLowerCase().includes(query)
+    `${tool.name} ${tool.provider}`.toLowerCase().includes(query),
   );
 
   $("#toolCount").textContent = `${rows.length}件`;
@@ -222,11 +334,11 @@ function renderTools() {
           `<td>${esc(tool.category)}</td>`,
           `<td>${count}</td>`,
           `<td>${badge(tool.status)}</td>`,
-          `<td class="row-actions">`,
+          `<td><div class="row-actions">`,
           `<button class="link-button" data-edit="tool" data-id="${tool.id}">編集</button>`,
           `<button class="link-button danger" data-delete="tool" data-id="${tool.id}">削除</button>`,
-          `</td>`,
-          `</tr>`
+          `</div></td>`,
+          `</tr>`,
         ].join("");
       })
       .join("") || '<tr><td class="empty" colspan="6">該当するツールはありません</td></tr>';
@@ -235,7 +347,7 @@ function renderTools() {
 function renderLicenses() {
   const query = ($("#licenseSearch")?.value || "").toLowerCase();
   const rows = state.licenses.filter((license) =>
-    `${license.name} ${toolById(license.toolId)?.name}`.toLowerCase().includes(query)
+    `${license.name} ${toolById(license.toolId)?.name}`.toLowerCase().includes(query),
   );
 
   $("#licenseCount").textContent = `${rows.length}件`;
@@ -243,7 +355,7 @@ function renderLicenses() {
     rows
       .map((license) => {
         const used = state.assignments.filter(
-          (item) => item.licenseId === license.id && item.status === "assigned"
+          (item) => item.licenseId === license.id && item.status === "assigned",
         ).length;
 
         return [
@@ -254,11 +366,11 @@ function renderLicenses() {
           `<td>${used}</td>`,
           `<td>${formatDate(license.renewal)}</td>`,
           `<td>${badge(license.status)}</td>`,
-          `<td class="row-actions">`,
+          `<td><div class="row-actions">`,
           `<button class="link-button" data-edit="license" data-id="${license.id}">編集</button>`,
           `<button class="link-button danger" data-delete="license" data-id="${license.id}">削除</button>`,
-          `</td>`,
-          `</tr>`
+          `</div></td>`,
+          `</tr>`,
         ].join("");
       })
       .join("") || '<tr><td class="empty" colspan="7">該当するライセンスはありません</td></tr>';
@@ -267,7 +379,7 @@ function renderLicenses() {
 function renderMembers() {
   const query = ($("#memberSearch")?.value || "").toLowerCase();
   const rows = state.members.filter((member) =>
-    `${member.name} ${member.email} ${member.department}`.toLowerCase().includes(query)
+    `${member.name} ${member.email} ${member.department}`.toLowerCase().includes(query),
   );
 
   $("#memberCount").textContent = `${rows.length}件`;
@@ -282,12 +394,12 @@ function renderMembers() {
           `<td>${esc(member.department)}</td>`,
           `<td>${state.assignments.filter((item) => item.memberId === member.id && item.status === "assigned").length}</td>`,
           `<td>${badge(member.status)}</td>`,
-          `<td class="row-actions">`,
+          `<td><div class="row-actions">`,
           `<button class="link-button" data-edit="member" data-id="${member.id}">編集</button>`,
           `<button class="link-button danger" data-delete="member" data-id="${member.id}">削除</button>`,
-          `</td>`,
-          `</tr>`
-        ].join("")
+          `</div></td>`,
+          `</tr>`,
+        ].join(""),
       )
       .join("") || '<tr><td class="empty" colspan="7">該当する利用者はいません</td></tr>';
 }
@@ -298,14 +410,14 @@ function renderAssignments() {
       .map((assignment) =>
         [
           `<tr>`,
-          `<td>${esc(memberById(assignment.memberId)?.name)}</td>`,
-          `<td>${esc(licenseById(assignment.licenseId)?.name)}</td>`,
+          `<td>${esc(memberById(assignment.memberId)?.name ?? "（削除済み）")}</td>`,
+          `<td>${esc(licenseById(assignment.licenseId)?.name ?? "（削除済み）")}</td>`,
           `<td>${formatDate(assignment.assignedAt)}</td>`,
           `<td>${badge(assignment.status)}</td>`,
           `<td>${esc(assignment.assignedBy)}</td>`,
           `<td>${assignment.status === "assigned" ? `<button class="link-button" data-release="${assignment.id}">返却</button>` : ""}</td>`,
-          `</tr>`
-        ].join("")
+          `</tr>`,
+        ].join(""),
       )
       .join("") || '<tr><td class="empty" colspan="6">割り当てはありません</td></tr>';
 }
@@ -321,8 +433,8 @@ function renderLogs() {
         `<td>${esc(log.action)}</td>`,
         `<td>${esc(log.target)}</td>`,
         `<td>${esc(log.user)}</td>`,
-        `</tr>`
-      ].join("")
+        `</tr>`,
+      ].join(""),
     )
     .join("");
 }
@@ -339,11 +451,11 @@ function render() {
 // =====================================================
 // フォーム（登録・編集ダイアログ）
 // =====================================================
-const field = (name, label, type = "text", value = "", options = "") =>
+const field = (name, label, type = "text", value = "", options = "", attrs = "") =>
   `<div class="field"><label for="field-${name}">${label}</label>${
     type === "select"
       ? `<select id="field-${name}" name="${name}" required>${options}</select>`
-      : `<input id="field-${name}" name="${name}" type="${type}" value="${esc(value)}" required>`
+      : `<input id="field-${name}" name="${name}" type="${type}" value="${esc(value)}" ${attrs} required>`
   }</div>`;
 
 function openForm(type, item = null) {
@@ -370,11 +482,11 @@ function openForm(type, item = null) {
         state.tools
           .map(
             (tool) =>
-              `<option value="${tool.id}" ${item?.toolId === tool.id ? "selected" : ""}>${esc(tool.name)}</option>`
+              `<option value="${tool.id}" ${item?.toolId === tool.id ? "selected" : ""}>${esc(tool.name)}</option>`,
           )
-          .join("")
+          .join(""),
       ) +
-      field("quantity", "契約数", "number", item?.quantity || 1) +
+      field("quantity", "契約数", "number", item?.quantity || 1, "", 'min="1" step="1"') +
       field("renewal", "更新日", "date", item?.renewal);
   }
 
@@ -395,7 +507,7 @@ function openForm(type, item = null) {
         "",
         state.members
           .map((member) => `<option value="${member.id}">${esc(member.name)}</option>`)
-          .join("")
+          .join(""),
       ) +
       field(
         "licenseId",
@@ -404,15 +516,16 @@ function openForm(type, item = null) {
         "",
         state.licenses
           .map((license) => `<option value="${license.id}">${esc(license.name)}</option>`)
-          .join("")
+          .join(""),
       ) +
-      field("assignedAt", "割り当て日", "date", new Date().toISOString().slice(0, 10));
+      field("assignedAt", "割り当て日", "date", todayString());
   }
 
   $("#dialogTitle").textContent = `${title}${
     { tool: "ツール", license: "ライセンス", member: "利用者", assignment: "割り当て" }[type]
   }`;
   $("#formFields").innerHTML = fields;
+  hideFormError();
   $("#formDialog").showModal();
 }
 
@@ -421,73 +534,97 @@ function addLog(action, target) {
     id: nextId(state.logs),
     action,
     target,
-    at: new Date().toLocaleString("ja-JP"),
-    user: "管理者"
+    at: nowString(),
+    user: "管理者",
   });
+}
+
+const COLLECTIONS = {
+  tool: "tools",
+  license: "licenses",
+  member: "members",
+  assignment: "assignments",
+};
+const TYPE_LABELS = {
+  tool: "ツール",
+  license: "ライセンス",
+  member: "利用者",
+  assignment: "割り当て",
+};
+const DEFAULTS = {
+  tool: { status: "active" },
+  license: { status: "active" },
+  member: { status: "active" },
+  assignment: { status: "assigned", assignedBy: "管理者" },
+};
+
+const showFormError = (message) => {
+  const element = $("#formError");
+  element.textContent = message;
+  element.hidden = false;
+};
+const hideFormError = () => {
+  $("#formError").hidden = true;
+};
+
+// フォームの値（すべて文字列）を、保存する型に直す
+function normalizeValues(type, values) {
+  if (type === "license") {
+    return { ...values, quantity: Number(values.quantity), toolId: Number(values.toolId) };
+  }
+  if (type === "assignment") {
+    return { ...values, memberId: Number(values.memberId), licenseId: Number(values.licenseId) };
+  }
+  return values;
+}
+
+// 保存前のチェック（問題なければ空文字を返す）
+function validateForm(type, id, data) {
+  if (type === "assignment" && !id) {
+    return validateAssignment(data.memberId, data.licenseId);
+  }
+  if (type === "license") {
+    if (!(data.quantity >= 1)) return "契約数は1以上にしてください。";
+    if (id && data.quantity < usedCount(id)) {
+      return `現在${usedCount(id)}件割り当て中のため、契約数をそれより少なくできません。`;
+    }
+  }
+  if (type === "member") {
+    const duplicated = state.members.some(
+      (member) =>
+        member.id !== id &&
+        (member.email.toLowerCase() === data.email.toLowerCase() || member.number === data.number),
+    );
+    if (duplicated) return "同じメールアドレスまたは社員番号の利用者が既に登録されています。";
+  }
+  return "";
 }
 
 $("#entityForm").addEventListener("submit", (event) => {
   if (event.submitter?.value === "cancel") return;
   event.preventDefault();
 
-  const values = Object.fromEntries(new FormData(event.currentTarget));
+  const { type, id } = formContext;
+  const trimmed = [...new FormData(event.currentTarget)].map(([key, value]) => [
+    key,
+    String(value).trim(),
+  ]);
+  const data = normalizeValues(type, Object.fromEntries(trimmed));
 
-  // 新規の割り当てだけ事前チェック
-  if (formContext.type === "assignment" && !formContext.id) {
-    const validationMessage = validateAssignment(Number(values.memberId), Number(values.licenseId));
-    if (validationMessage) return notify(validationMessage, true);
-  }
+  const message = validateForm(type, id, data);
+  if (message) return showFormError(message);
 
-  const collection = {
-    tool: "tools",
-    license: "licenses",
-    member: "members",
-    assignment: "assignments"
-  }[formContext.type];
-
-  if (formContext.id) {
-    Object.assign(state[collection].find((item) => item.id === formContext.id), values);
+  const items = state[COLLECTIONS[type]];
+  if (id) {
+    Object.assign(
+      items.find((item) => item.id === id),
+      data,
+    );
   } else {
-    state[collection].push({
-      id: nextId(state[collection]),
-      ...(formContext.type === "tool"
-        ? { status: "active" }
-        : formContext.type === "license"
-          ? { status: "active", quantity: Number(values.quantity), toolId: Number(values.toolId) }
-          : formContext.type === "member"
-            ? { status: "active" }
-            : {
-                memberId: Number(values.memberId),
-                licenseId: Number(values.licenseId),
-                status: "assigned",
-                assignedBy: "管理者"
-              }),
-      ...values
-    });
+    items.push({ id: nextId(items), ...DEFAULTS[type], ...data });
   }
 
-  // フォーム値は文字列なので、数値に戻す
-  if (formContext.type === "license") {
-    const license = formContext.id ? licenseById(formContext.id) : state.licenses.at(-1);
-    license.quantity = Number(values.quantity);
-    license.toolId = Number(values.toolId);
-  }
-
-  if (formContext.type === "assignment") {
-    const assignment = formContext.id
-      ? state.assignments.find((item) => item.id === formContext.id)
-      : state.assignments.at(-1);
-    assignment.memberId = Number(values.memberId);
-    assignment.licenseId = Number(values.licenseId);
-  }
-
-  addLog(`${formContext.id ? "更新" : "登録"}`, {
-    tool: "ツール",
-    license: "ライセンス",
-    member: "利用者",
-    assignment: "割り当て"
-  }[formContext.type]);
-
+  addLog(id ? "更新" : "登録", TYPE_LABELS[type]);
   save();
   $("#formDialog").close();
   notify("保存しました");
@@ -497,9 +634,28 @@ $("#entityForm").addEventListener("submit", (event) => {
 // =====================================================
 // クリック操作（画面切替・編集・削除・返却）
 // =====================================================
+function deleteBlockedReason(type, item) {
+  if (type === "tool" && state.licenses.some((license) => license.toolId === item.id)) {
+    return "ライセンスが登録されているツールは削除できません。先にライセンスを削除してください。";
+  }
+  if (type === "license" && usedCount(item.id) > 0) {
+    return "割り当て中のライセンスは削除できません。先に返却してください。";
+  }
+  if (
+    type === "member" &&
+    state.assignments.some((a) => a.memberId === item.id && a.status === "assigned")
+  ) {
+    return "ライセンスを利用中の利用者は削除できません。先に返却してください。";
+  }
+  return "";
+}
+
+// =====================================================
+// クリック操作（画面切替・編集・削除・返却）
+// =====================================================
 document.addEventListener("click", (event) => {
   const target = event.target.closest(
-    "[data-view], [data-view-target], [data-edit], [data-delete], [data-release]"
+    "[data-view], [data-view-target], [data-edit], [data-delete], [data-release]",
   );
   if (!target) return;
 
@@ -512,18 +668,18 @@ document.addEventListener("click", (event) => {
   if (target.dataset.edit) {
     return openForm(
       type,
-      ({ tool: state.tools, license: state.licenses, member: state.members }[type]).find(
-        (item) => item.id === Number(target.dataset.id)
-      )
+      { tool: state.tools, license: state.licenses, member: state.members }[type].find(
+        (item) => item.id === Number(target.dataset.id),
+      ),
     );
   }
 
   if (target.dataset.delete) {
-    const collection = { tool: "tools", license: "licenses", member: "member" }[type];
-    const items =
-      type === "tool" ? state.tools : type === "license" ? state.licenses : state.members;
+    const items = state[COLLECTIONS[type]];
     const item = items.find((entry) => entry.id === Number(target.dataset.id));
 
+    const blocked = deleteBlockedReason(type, item);
+    if (blocked) return notify(blocked, true);
     if (!confirm(`${item.name}を削除しますか？`)) return;
 
     items.splice(items.indexOf(item), 1);
@@ -534,9 +690,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (target.dataset.release) {
-    const assignment = state.assignments.find(
-      (item) => item.id === Number(target.dataset.release)
-    );
+    const assignment = state.assignments.find((item) => item.id === Number(target.dataset.release));
     assignment.status = "released";
     addLog("返却", licenseById(assignment.licenseId)?.name);
     save();
@@ -548,23 +702,13 @@ document.addEventListener("click", (event) => {
 // =====================================================
 // イベント登録
 // =====================================================
-document
-  .querySelectorAll(".nav-item")
-  .forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
-
-document
-  .querySelectorAll("[data-view-target]")
-  .forEach((button) =>
-    button.addEventListener("click", () => showView(button.dataset.viewTarget))
-  );
-
 $("#addToolButton").addEventListener("click", () => openForm("tool"));
 $("#addLicenseButton").addEventListener("click", () => openForm("license"));
 $("#addMemberButton").addEventListener("click", () => openForm("member"));
 $("#addAssignmentButton").addEventListener("click", () => openForm("assignment"));
 
 ["toolSearch", "licenseSearch", "memberSearch"].forEach((id) =>
-  $(`#${id}`).addEventListener("input", render)
+  $(`#${id}`).addEventListener("input", render),
 );
 
 // =====================================================
@@ -603,12 +747,12 @@ $("#exportLicensesButton").addEventListener("click", () =>
       toolById(license.toolId)?.name,
       license.quantity,
       state.assignments.filter(
-        (item) => item.licenseId === license.id && item.status === "assigned"
+        (item) => item.licenseId === license.id && item.status === "assigned",
       ).length,
       license.renewal,
-      statusLabel(license.status)
-    ])
-  )
+      statusLabel(license.status),
+    ]),
+  ),
 );
 
 $("#exportMembersButton").addEventListener("click", () =>
@@ -620,10 +764,52 @@ $("#exportMembersButton").addEventListener("click", () =>
       member.email,
       member.number,
       member.department,
-      statusLabel(member.status)
-    ])
-  )
+      statusLabel(member.status),
+    ]),
+  ),
 );
+
+// ダブルクォート内のカンマ・改行にも対応した簡易CSVパーサー
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') {
+        cell += '"';
+        i++;
+      } else if (ch === '"') {
+        quoted = false;
+      } else {
+        cell += ch;
+      }
+    } else if (ch === '"') {
+      quoted = true;
+    } else if (ch === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += ch;
+    }
+  }
+  if (cell || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+  return rows.filter((r) => r.some((value) => value.trim()));
+}
+
+$("#importButton").addEventListener("click", () => $("#memberImport").click());
 
 $("#memberImport").addEventListener("change", (event) => {
   const file = event.target.files[0];
@@ -631,29 +817,40 @@ $("#memberImport").addEventListener("change", (event) => {
 
   const reader = new FileReader();
   reader.onload = () => {
-    const lines = String(reader.result).replace(/^\ufeff/, "").split(/\r?\n/).filter(Boolean);
-    const imported = lines
-      .slice(1)
-      .map((line) => line.split(",").map((value) => value.trim().replace(/^"|"$/g, "")))
-      .filter((row) => row.length >= 4 && row[0]);
+    // 1行目はヘッダーとして読み飛ばす
+    const rows = parseCsv(String(reader.result).replace(/^\ufeff/, "")).slice(1);
+    let added = 0;
+    let skipped = 0;
 
-    imported.forEach(([name, email, number, department]) => {
-      if (!state.members.some((member) => member.email === email || member.number === number)) {
-        state.members.push({
-          id: nextId(state.members),
-          name,
-          email,
-          number,
-          department,
-          status: "active"
-        });
+    rows.forEach((row) => {
+      const [name, email, number, department] = row.map((value) => value.trim());
+      const invalid = !name || !email || !number || !department;
+      const duplicated =
+        !invalid &&
+        state.members.some(
+          (member) =>
+            member.email.toLowerCase() === email.toLowerCase() || member.number === number,
+        );
+
+      if (invalid || duplicated) {
+        skipped++;
+        return;
       }
+      state.members.push({
+        id: nextId(state.members),
+        name,
+        email,
+        number,
+        department,
+        status: "active",
+      });
+      added++;
     });
 
-    addLog("CSV取込", `${imported.length}件の利用者`);
+    addLog("CSV取込", `${added}件の利用者`);
     save();
     render();
-    notify(`${imported.length}件の利用者を取り込みました`);
+    notify(`${added}件を取り込みました（${skipped}件はスキップ）`, added === 0 && skipped > 0);
     event.target.value = "";
   };
   reader.readAsText(file, "UTF-8");
