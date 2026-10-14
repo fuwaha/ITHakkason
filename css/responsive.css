@@ -1,0 +1,70 @@
+/* レスポンシブ（画面幅ごとの調整） */
+@media (max-width: 850px) {
+  .sidebar {
+    width: 190px;
+  }
+  .content {
+    padding: 25px 20px;
+  }
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .topbar {
+    padding: 0 15px;
+  }
+  .topbar-actions span {
+    display: none;
+  }
+  .layout {
+    display: block;
+  }
+  .sidebar {
+    width: 100%;
+    padding: 8px;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .sidebar nav {
+    display: flex;
+    gap: 5px;
+  }
+  .nav-item {
+    white-space: nowrap;
+    width: auto;
+    margin: 0;
+  }
+  .content {
+    padding: 20px 14px;
+  }
+  .page-heading {
+    display: block;
+  }
+  .page-heading .primary-button {
+    margin-top: 18px;
+  }
+  .metrics {
+    gap: 10px;
+  }
+  .metric {
+    padding: 14px;
+  }
+  .metric-value {
+    font-size: 24px;
+  }
+  .search {
+    width: 100%;
+  }
+  .toolbar {
+    display: block;
+  }
+  .result-count {
+    display: block;
+    margin-top: 7px;
+  }
+}

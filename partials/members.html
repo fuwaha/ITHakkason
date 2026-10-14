@@ -1,0 +1,45 @@
+<section id="members" class="view">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">MEMBERS</p>
+      <h1>利用者管理</h1>
+      <p>利用者の登録情報と割り当て状況を管理します。</p>
+    </div>
+    <div class="heading-actions">
+      <button class="secondary-button" id="importButton" type="button">CSV取込</button
+      ><input id="memberImport" type="file" accept=".csv" hidden /><button
+        class="secondary-button"
+        id="exportMembersButton"
+        type="button"
+      >
+        CSV出力</button
+      ><button class="primary-button" id="addMemberButton" type="button">
+        ＋ 利用者を登録
+      </button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <input
+      class="search"
+      id="memberSearch"
+      type="search"
+      placeholder="氏名・メールアドレスで検索"
+    /><span id="memberCount" class="result-count"></span>
+  </div>
+  <div class="panel table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>氏名</th>
+          <th>メールアドレス</th>
+          <th>社員番号</th>
+          <th>部署</th>
+          <th>割り当て数</th>
+          <th>ステータス</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="membersTable"></tbody>
+    </table>
+  </div>
+</section>

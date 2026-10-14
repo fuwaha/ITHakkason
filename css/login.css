@@ -1,0 +1,43 @@
+/* ログイン画面 */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  background: #f4f7fb;
+  display: grid;
+  place-items: center;
+  z-index: 20;
+}
+.login-screen.hidden {
+  display: none;
+}
+.login-card {
+  width: min(410px, calc(100% - 32px));
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 34px;
+  box-shadow: 0 12px 40px #173f6817;
+}
+.login-card h1 {
+  font-size: 27px;
+  margin: 0 0 8px;
+}
+.login-description {
+  color: #697b8f;
+  font-size: 14px;
+  margin: 0 0 24px;
+}
+.login-button {
+  width: 100%;
+  margin-top: 8px;
+}
+.login-hint {
+  color: #8290a0;
+  font-size: 12px;
+  text-align: center;
+  margin: 16px 0 0;
+}
+.auth-toggle {
+  display: block;
+  margin: 15px auto 0;
+}

@@ -1,0 +1,48 @@
+/* ダッシュボード（指標カード・一覧リスト） */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.metric {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+}
+.metric-label {
+  color: #738397;
+  font-size: 13px;
+}
+.metric-value {
+  font-size: 30px;
+  font-weight: 700;
+  margin-top: 7px;
+}
+.metric-note {
+  color: #3e8a5d;
+  font-size: 12px;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.list-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 13px 0;
+  border-bottom: 1px solid #edf1f5;
+}
+.list-row:last-child {
+  border-bottom: 0;
+}
+.list-main {
+  font-weight: 600;
+}
+.list-sub {
+  font-size: 12px;
+  color: #7a899a;
+}

@@ -3,269 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ライセンス一元管理</title>
+  <title>PassHub</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <section id="loginScreen" class="login-screen">
-    <form id="loginForm" class="login-card">
-      <p class="eyebrow">LICENSE MANAGEMENT</p>
-      <h1 id="authTitle">ログイン</h1>
-      <p id="authDescription" class="login-description">登録済みのアカウントでログインしてください。</p>
-      <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" value="admin@example.jp" autocomplete="email" required></div>
-      <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" placeholder="demo1234" autocomplete="current-password" required></div>
-      <p id="loginError" class="form-error" hidden>メールアドレスまたはパスワードが違います。</p>
-      <button class="primary-button login-button" type="submit">ログイン</button>
-      <button id="registerToggle" class="text-button auth-toggle" type="button">新しいアカウントを登録する</button>
-      <p class="login-hint">初期管理者: admin@example.jp / demo1234</p>
-    </form>
-  </section>
-  <header class="topbar">
-    <div class="brand">ライセンス一元管理</div>
-    <div class="topbar-actions">
-      <span id="currentUser">管理者</span>
-      <button class="icon-button" id="logoutButton" type="button">ログアウト</button>
-    </div>
-  </header>
+  <div data-include="partials/login.html"></div>
+  <div data-include="partials/topbar.html"></div>
 
   <div class="layout">
-    <aside class="sidebar">
-      <nav aria-label="メインメニュー">
-        <button type="button" class="nav-item active" data-view="dashboard">
-          ダッシュボード
-        </button>
-        <button type="button" class="nav-item" data-view="tools">ツール管理</button>
-        <button type="button" class="nav-item" data-view="licenses">ライセンス管理</button>
-        <button type="button" class="nav-item" data-view="members">利用者管理</button>
-        <button type="button" class="nav-item" data-view="assignments">ライセンス割り当て</button>
-        <button type="button" class="nav-item" data-view="logs">操作履歴</button>
-      </nav>
-    </aside>
+    <div data-include="partials/sidebar.html"></div>
 
     <main class="content">
       <div id="notice" class="notice" role="status" hidden></div>
-      <section id="dashboard" class="view active">
-        <div class="page-heading">
-          <div>
-            <p class="eyebrow">OVERVIEW</p>
-            <h1>ダッシュボード</h1>
-            <p>ライセンスの利用状況を一目で確認できます。</p>
-          </div>
-          <button class="primary-button" data-view-target="assignments" type="button">
-            ＋ 割り当てを登録
-          </button>
-        </div>
-        <div class="metrics" id="metrics"></div>
-        <div class="dashboard-grid">
-          <article class="panel">
-            <div class="panel-heading">
-              <h2>更新期限が近いライセンス</h2>
-              <button type="button" class="text-button" data-view-target="licenses">
-                一覧を見る
-              </button>
-            </div>
-            <div id="renewalList"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-heading">
-              <h2>最近の操作</h2>
-              <button type="button" class="text-button" data-view-target="logs">
-                履歴を見る
-              </button>
-            </div>
-            <div id="recentLogs"></div>
-          </article>
-        </div>
-      </section>
-
-      <section id="tools" class="view">
-        <div class="page-heading">
-          <div>
-            <p class="eyebrow">MASTER</p>
-            <h1>ツール管理</h1>
-            <p>管理対象のソフトウェアとクラウドサービスを管理します。</p>
-          </div>
-          <button class="primary-button" id="addToolButton" type="button">＋ ツールを登録</button>
-        </div>
-        <div class="toolbar">
-          <input
-            class="search"
-            id="toolSearch"
-            type="search"
-            placeholder="ツール名・提供会社で検索"
-          /><span id="toolCount" class="result-count"></span>
-        </div>
-        <div class="panel table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ツール名</th>
-                <th>提供会社</th>
-                <th>カテゴリ</th>
-                <th>ライセンス数</th>
-                <th>ステータス</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="toolsTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="licenses" class="view">
-        <div class="page-heading">
-          <div>
-            <p class="eyebrow">LICENSES</p>
-            <h1>ライセンス管理</h1>
-            <p>契約数、利用数、更新日を管理します。</p>
-          </div>
-          <div class="heading-actions">
-            <button class="secondary-button" id="exportLicensesButton" type="button">
-              CSV出力</button
-            ><button class="primary-button" id="addLicenseButton" type="button">
-              ＋ ライセンスを登録
-            </button>
-          </div>
-        </div>
-        <div class="toolbar">
-          <input
-            class="search"
-            id="licenseSearch"
-            type="search"
-            placeholder="プラン名・ツール名で検索"
-          /><span id="licenseCount" class="result-count"></span>
-        </div>
-        <div class="panel table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ライセンス名</th>
-                <th>対象ツール</th>
-                <th>契約数</th>
-                <th>利用数</th>
-                <th>更新日</th>
-                <th>ステータス</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="licensesTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="members" class="view">
-        <div class="page-heading">
-          <div>
-            <p class="eyebrow">MEMBERS</p>
-            <h1>利用者管理</h1>
-            <p>利用者の登録情報と割り当て状況を管理します。</p>
-          </div>
-          <div class="heading-actions">
-            <button class="secondary-button" id="importButton" type="button">CSV取込</button
-            ><input id="memberImport" type="file" accept=".csv" hidden /><button
-              class="secondary-button"
-              id="exportMembersButton"
-              type="button"
-            >
-              CSV出力</button
-            ><button class="primary-button" id="addMemberButton" type="button">
-              ＋ 利用者を登録
-            </button>
-          </div>
-        </div>
-        <div class="toolbar">
-          <input
-            class="search"
-            id="memberSearch"
-            type="search"
-            placeholder="氏名・メールアドレスで検索"
-          /><span id="memberCount" class="result-count"></span>
-        </div>
-        <div class="panel table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>氏名</th>
-                <th>メールアドレス</th>
-                <th>社員番号</th>
-                <th>部署</th>
-                <th>割り当て数</th>
-                <th>ステータス</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="membersTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="assignments" class="view">
-        <div class="page-heading">
-          <div>
-            <p class="eyebrow">ASSIGNMENTS</p>
-            <h1>ライセンス割り当て</h1>
-            <p>利用者への割り当てと返却を管理します。</p>
-          </div>
-          <button class="primary-button" id="addAssignmentButton" type="button">
-            ＋ 割り当てを登録
-          </button>
-        </div>
-        <div class="panel table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>利用者</th>
-                <th>ライセンス</th>
-                <th>割り当て日</th>
-                <th>状態</th>
-                <th>割り当て者</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="assignmentsTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="logs" class="view">
-        <div class="page-heading">
-          <div>
-            <p class="eyebrow">AUDIT LOG</p>
-            <h1>操作履歴</h1>
-            <p>登録・更新・削除などの操作を確認できます。</p>
-          </div>
-        </div>
-        <div class="panel table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>日時</th>
-                <th>操作</th>
-                <th>対象</th>
-                <th>実行者</th>
-              </tr>
-            </thead>
-            <tbody id="logsTable"></tbody>
-          </table>
-        </div>
-      </section>
+      <div data-include="partials/dashboard.html"></div>
+      <div data-include="partials/tools.html"></div>
+      <div data-include="partials/licenses.html"></div>
+      <div data-include="partials/members.html"></div>
+      <div data-include="partials/assignments.html"></div>
+      <div data-include="partials/logs.html"></div>
     </main>
   </div>
 
-  <dialog id="formDialog">
-    <form method="dialog" id="entityForm">
-      <div class="dialog-heading">
-        <h2 id="dialogTitle"></h2>
-        <button id="closeFormButton" class="close-button" type="button" aria-label="閉じる">×</button>
-      </div>
-      <div id="formFields" class="form-fields"></div>
-      <p id="formError" class="form-error dialog-error" role="alert" hidden></p>
-      <div class="dialog-actions">
-        <button id="cancelFormButton" class="secondary-button" type="button">キャンセル</button>
-        <button class="primary-button" id="saveButton" value="default" type="submit">保存</button>
-      </div>
-    </form>
-  </dialog>
-  <script src="app.js"></script>
+  <div data-include="partials/dialog.html"></div>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

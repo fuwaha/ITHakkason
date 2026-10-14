@@ -1,0 +1,54 @@
+/* 検索バー・テーブル */
+.toolbar {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.search {
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 11px 13px;
+  width: 320px;
+  font: inherit;
+  background: #fff;
+}
+.result-count {
+  color: #718096;
+  font-size: 13px;
+}
+.table-wrap {
+  overflow-x: auto;
+  padding: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+th,
+td {
+  text-align: left;
+  padding: 15px 18px;
+  border-bottom: 1px solid #edf1f5;
+  font-size: 14px;
+  vertical-align: middle;
+}
+th {
+  background: #f8fafc;
+  color: #627286;
+  font-size: 12px;
+  font-weight: 700;
+}
+tbody tr:hover {
+  background: #fafcff;
+}
+.row-actions {
+  display: flex;
+  gap: 10px;
+}
+.empty {
+  text-align: center;
+  color: #8997a8;
+  padding: 30px;
+}
