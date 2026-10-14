@@ -1,5 +1,9 @@
 <!doctype html>
 <html lang="ja">
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> main
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +16,10 @@
       <p class="eyebrow">LICENSE MANAGEMENT</p>
       <h1 id="authTitle">ログイン</h1>
       <p id="authDescription" class="login-description">登録済みのアカウントでログインしてください。</p>
+<<<<<<< HEAD
+=======
+      <div class="field" id="loginNameField" hidden><label for="loginName">氏名</label><input id="loginName" type="text" autocomplete="name"></div>
+>>>>>>> main
       <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" value="admin@example.jp" autocomplete="email" required></div>
       <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" placeholder="demo1234" autocomplete="current-password" required></div>
       <p id="loginError" class="form-error" hidden>メールアドレスまたはパスワードが違います。</p>
@@ -27,6 +35,57 @@
       <button class="icon-button" id="logoutButton" type="button">ログアウト</button>
     </div>
   </header>
+<<<<<<< HEAD
+=======
+=======
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ライセンス一元管理</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <section id="loginScreen" class="login-screen">
+      <form id="loginForm" class="login-card">
+        <p class="eyebrow">LICENSE MANAGEMENT</p>
+        <h1>ログイン</h1>
+        <p class="login-description">管理画面を利用するにはログインしてください。</p>
+        <div class="field">
+          <label for="loginEmail">メールアドレス</label
+          ><input
+            id="loginEmail"
+            type="email"
+            autocomplete="username"
+            value="admin@example.jp"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="loginPassword">パスワード</label
+          ><input
+            id="loginPassword"
+            type="password"
+            autocomplete="current-password"
+            placeholder="demo1234"
+            required
+          />
+        </div>
+        <p id="loginError" class="form-error" role="alert" hidden>
+          メールアドレスまたはパスワードが違います。
+        </p>
+        <button class="primary-button login-button" type="submit">ログイン</button>
+        <p class="login-hint">デモ用: admin@example.jp / demo1234</p>
+      </form>
+    </section>
+    <header class="topbar">
+      <div class="brand">ライセンス一元管理</div>
+      <div class="topbar-actions">
+        <span id="currentUser">管理者</span>
+        <button class="icon-button" id="logoutButton" type="button">ログアウト</button>
+      </div>
+    </header>
+>>>>>>> 55cd90fcb12db7a1e551830570c317d51893036f
+>>>>>>> main
 
     <div class="layout">
       <aside class="sidebar">
@@ -275,6 +334,10 @@
             保存
           </button>
         </div>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> main
       </section>
 
       <section id="tools" class="view">
@@ -317,3 +380,13 @@
   <script src="app.js"></script>
 </body>
 </html>
+<<<<<<< HEAD
+=======
+=======
+      </form>
+    </dialog>
+    <script src="app.js"></script>
+  </body>
+</html>
+>>>>>>> 55cd90fcb12db7a1e551830570c317d51893036f
+>>>>>>> main
