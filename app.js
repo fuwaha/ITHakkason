@@ -2,6 +2,11 @@
 // 初期データ
 // =====================================================
 const seed = {
+  users: [
+    { id: 1, name: "管理者", email: "admin@example.jp", password: "demo1234", role: "admin" },
+    { id: 2, name: "山本 マネージャー", email: "manager@example.jp", password: "manager1234", role: "manager" },
+    { id: 3, name: "中村 ユーザー", email: "user@example.jp", password: "user1234", role: "user" },
+  ],
   tools: [
     {
       id: 1,
@@ -118,6 +123,7 @@ const loadState = () => {
   }
 };
 const state = loadState();
+if (!state.users) state.users = seed.users; // 古い保存データ対策
 let formContext = null;
 
 const $ = (selector) => document.querySelector(selector);
@@ -157,7 +163,11 @@ const statusLabel = (status) =>
 const badge = (status, extra = "") =>
   `<span class="badge ${extra || status}">${esc(statusLabel(status))}</span>`;
 
-const authenticated = () => sessionStorage.getItem("licenseManagerAuthenticated") === "true";
+// ログイン中のユーザー（sessionStorage に user id を保存し、users から探す）
+const currentUser = () =>
+  state.users.find((user) => user.id === Number(sessionStorage.getItem("licenseManagerUserId"))) ||
+  null;
+const authenticated = () => currentUser() !== null;
 
 // ローカル時間（日本時間など）での日付・日時
 const todayString = () => new Date().toLocaleDateString("sv-SE");
@@ -174,6 +184,7 @@ const renewalBadge = (date) => {
 
 function updateAuthView() {
   $("#loginScreen").classList.toggle("hidden", authenticated());
+  $("#currentUser").textContent = currentUser()?.name ?? "";
 }
 
 // CSVの1セル分（Excelで数式として実行されないよう先頭の記号を無効化）
@@ -716,22 +727,26 @@ $("#addAssignmentButton").addEventListener("click", () => openForm("assignment")
 // =====================================================
 $("#loginForm").addEventListener("submit", (event) => {
   event.preventDefault();
-
+ 
   const email = $("#loginEmail").value.trim().toLowerCase();
   const password = $("#loginPassword").value;
-  const valid = email === "admin@example.jp" && password === "demo1234";
-
+ 
+  // users テーブル相当のデータからメールアドレスで探し、パスワードを照合する
+  const user = state.users.find((item) => item.email.toLowerCase() === email);
+  const valid = Boolean(user) && user.password === password;
+ 
   $("#loginError").hidden = valid;
-
+ 
   if (valid) {
-    sessionStorage.setItem("licenseManagerAuthenticated", "true");
+    sessionStorage.setItem("licenseManagerUserId", String(user.id));
+    $("#loginPassword").value = "";
     updateAuthView();
-    notify("ログインしました");
+    notify(`${user.name} としてログインしました`);
   }
 });
-
+ 
 $("#logoutButton").addEventListener("click", () => {
-  sessionStorage.removeItem("licenseManagerAuthenticated");
+  sessionStorage.removeItem("licenseManagerUserId");
   updateAuthView();
 });
 
