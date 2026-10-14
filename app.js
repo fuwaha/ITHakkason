@@ -6,6 +6,7 @@ const seed = {
     { id: 1, name: "管理者", email: "admin@example.jp", password: "demo1234", role: "admin" },
     { id: 2, name: "山本 マネージャー", email: "manager@example.jp", password: "manager1234", role: "manager" },
     { id: 3, name: "中村 ユーザー", email: "user@example.jp", password: "user1234", role: "user" },
+    { id: 1, name: "管理者", email: "admin@example.jp", password: "demo1234", role: "admin" }
   ],
   tools: [
     {
@@ -112,20 +113,14 @@ const seed = {
   ],
 };
 
-// =====================================================
-// 状態管理・共通ヘルパー
-// =====================================================
-const loadState = () => {
-  try {
-    return JSON.parse(localStorage.getItem("licenseManagerState") || "null") || seed;
-  } catch {
-    return seed; // 保存データが壊れていても起動できるようにする
-  }
-};
-const state = loadState();
-if (!state.users) state.users = seed.users; // 古い保存データ対策
+const state = JSON.parse(localStorage.getItem("licenseManagerState") || "null") || seed;
+const storedUsers = Array.isArray(state.users) ? state.users : [];
+state.users = [...seed.users, ...storedUsers]
+  .filter((user, index, users) => user?.email && users.findIndex((item) => item.email.toLowerCase() === user.email.toLowerCase()) === index)
+  .map((user) => ({ ...user, email: user.email.trim().toLowerCase() }));
+if (!Array.isArray(state.users) || state.users.length !== storedUsers.length) localStorage.setItem("licenseManagerState", JSON.stringify(state));
 let formContext = null;
-
+let authMode = "login";
 const $ = (selector) => document.querySelector(selector);
 
 const esc = (value) =>
@@ -148,43 +143,87 @@ const nextId = (items) => items.reduce((max, item) => Math.max(max, item.id), 0)
 const toolById = (id) => state.tools.find((tool) => tool.id === Number(id));
 const licenseById = (id) => state.licenses.find((license) => license.id === Number(id));
 const memberById = (id) => state.members.find((member) => member.id === Number(id));
-
-const formatDate = (date) =>
-  date ? new Date(`${date}T00:00:00`).toLocaleDateString("ja-JP") : "-";
-
-const statusLabel = (status) =>
-  ({
-    active: "有効",
-    assigned: "割り当て中",
-    released: "返却済み",
-    inactive: "無効",
-  })[status] || status;
-
-const badge = (status, extra = "") =>
-  `<span class="badge ${extra || status}">${esc(statusLabel(status))}</span>`;
-
-// ログイン中のユーザー（sessionStorage に user id を保存し、users から探す）
-const currentUser = () =>
-  state.users.find((user) => user.id === Number(sessionStorage.getItem("licenseManagerUserId"))) ||
-  null;
-const authenticated = () => currentUser() !== null;
-
-// ローカル時間（日本時間など）での日付・日時
-const todayString = () => new Date().toLocaleDateString("sv-SE");
-const nowString = () => new Date().toLocaleString("sv-SE").slice(0, 16);
-
-const daysUntil = (date) =>
-  Math.ceil((new Date(`${date}T00:00:00`) - new Date(`${todayString()}T00:00:00`)) / 86400000);
-
-const renewalBadge = (date) => {
-  const days = daysUntil(date);
-  if (days < 0) return `<span class="badge warning">期限切れ</span>`;
-  return `<span class="badge ${days <= 30 ? "warning" : "active"}">あと${days}日</span>`;
+const formatDate = (date) => date ? new Date(`${date}T00:00:00`).toLocaleDateString("ja-JP") : "-";
+const statusLabel = (status) => ({ active: "有効", assigned: "割り当て中", released: "返却済み", inactive: "無効" }[status] || status);
+const badge = (status, extra = "") => `<span class="badge ${extra || status}">${esc(statusLabel(status))}</span>`;
+const authenticated = () => sessionStorage.getItem("licenseManagerAuthenticated") === "true" && Boolean(sessionStorage.getItem("licenseManagerToken"));
+const apiFetch = (path, options = {}) => fetch(path, {
+  ...options,
+  headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+}).then(async (response) => {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "サーバーとの通信に失敗しました");
+  return payload;
+});
+const authHeaders = () => {
+  const token = sessionStorage.getItem("licenseManagerToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
+const isAdmin = () => JSON.parse(sessionStorage.getItem("licenseManagerUser") || "null")?.role === "admin";
+const entityPaths = { tool: "tools", license: "licenses", member: "members", assignment: "assignments" };
+const apiEntity = (type, id = "") => `/api/${entityPaths[type]}${id ? `/${id}` : ""}`;
+
+async function loadServerData() {
+  if (!authenticated()) return;
+  const data = await apiFetch("/api/data", { headers: authHeaders() });
+  Object.assign(state, data);
+  render();
+}
 
 function updateAuthView() {
   $("#loginScreen").classList.toggle("hidden", authenticated());
-  $("#currentUser").textContent = currentUser()?.name ?? "";
+  const userId = Number(sessionStorage.getItem("licenseManagerUserId"));
+  const storedUser = JSON.parse(sessionStorage.getItem("licenseManagerUser") || "null");
+  const user = state.users.find((item) => item.id === userId) || storedUser;
+  if (user) $("#currentUser").textContent = `${user.name}（${user.role === "admin" ? "管理者" : "利用者"}）`;
+}
+
+function storeAuthenticatedUser(user, token) {
+  sessionStorage.setItem("licenseManagerAuthenticated", "true");
+  sessionStorage.setItem("licenseManagerUserId", String(user.id));
+  sessionStorage.setItem("licenseManagerUser", JSON.stringify(user));
+  sessionStorage.setItem("licenseManagerToken", token);
+  if (!state.users.some((item) => item.id === user.id)) {
+    state.users.push(user);
+    save();
+  }
+}
+
+function clearAuthenticatedUser() {
+  sessionStorage.removeItem("licenseManagerAuthenticated");
+  sessionStorage.removeItem("licenseManagerUserId");
+  sessionStorage.removeItem("licenseManagerUser");
+  sessionStorage.removeItem("licenseManagerToken");
+}
+
+async function restoreSession() {
+  const token = sessionStorage.getItem("licenseManagerToken");
+  if (!token) return updateAuthView();
+  try {
+    const { user } = await apiFetch("/api/session", { headers: { Authorization: `Bearer ${token}` } });
+    if (!user) {
+      clearAuthenticatedUser();
+    } else {
+      storeAuthenticatedUser(user, token);
+    }
+  } catch {
+    clearAuthenticatedUser();
+  }
+  updateAuthView();
+  await loadServerData();
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const registering = mode === "register";
+  $("#authTitle").textContent = registering ? "アカウント登録" : "ログイン";
+  $("#authDescription").textContent = registering ? "usersテーブルに新しいアカウントを登録します。" : "登録済みのアカウントでログインしてください。";
+  $("#loginNameField").hidden = !registering;
+  $("#loginName").required = registering;
+  $("#loginPassword").autocomplete = registering ? "new-password" : "current-password";
+  $("#loginForm .login-button").textContent = registering ? "アカウントを登録" : "ログイン";
+  $("#registerToggle").textContent = registering ? "ログイン画面に戻る" : "新しいアカウントを登録する";
+  $("#loginError").hidden = true;
 }
 
 // CSVの1セル分（Excelで数式として実行されないよう先頭の記号を無効化）
@@ -270,58 +309,21 @@ function notify(message, error = false) {
 function renderDashboard() {
   const assigned = state.assignments.filter((item) => item.status === "assigned").length;
   const total = state.licenses.reduce((sum, item) => sum + item.quantity, 0);
-  const renewals = [...state.licenses]
-    .sort((a, b) => a.renewal.localeCompare(b.renewal))
-    .slice(0, 3);
-
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntil = (date) => date ? Math.ceil((new Date(`${date}T00:00:00`) - today) / 86400000) : Infinity;
+  const expiring = state.licenses.filter((license) => daysUntil(license.renewal) <= 30);
+  const renewals = [...state.licenses].sort((a, b) => a.renewal.localeCompare(b.renewal)).slice(0, 3);
   $("#metrics").innerHTML = [
     ["登録ツール", state.tools.length, "管理対象のサービス"],
     ["ライセンス総数", total, "契約済みライセンス"],
     ["割り当て済み", assigned, "現在利用中"],
     ["利用可能数", total - assigned, "割り当て可能"],
-  ]
-    .map(([label, value, note]) =>
-      [
-        `<div class="metric">`,
-        `<div class="metric-label">${label}</div>`,
-        `<div class="metric-value">${value}</div>`,
-        `<div class="metric-note">${note}</div>`,
-        `</div>`,
-      ].join(""),
-    )
-    .join("");
-
-  $("#renewalList").innerHTML =
-    renewals
-      .map((license) =>
-        [
-          `<div class="list-row">`,
-          `<div>`,
-          `<div class="list-main">${esc(license.name)}</div>`,
-          `<div class="list-sub">${esc(toolById(license.toolId)?.name)} / 更新日 ${formatDate(license.renewal)}</div>`,
-          `</div>`,
-          renewalBadge(license.renewal),
-          `</div>`,
-        ].join(""),
-      )
-      .join("") || '<div class="empty">更新予定はありません</div>';
-
-  $("#recentLogs").innerHTML =
-    state.logs
-      .slice(-4)
-      .reverse()
-      .map((log) =>
-        [
-          `<div class="list-row">`,
-          `<div>`,
-          `<div class="list-main">${esc(log.action)}</div>`,
-          `<div class="list-sub">${esc(log.target)} ・ ${esc(log.user)}</div>`,
-          `</div>`,
-          `<div class="list-sub">${esc(log.at)}</div>`,
-          `</div>`,
-        ].join(""),
-      )
-      .join("") || '<div class="empty">操作履歴はありません</div>';
+    ["期限30日以内", expiring.length, expiring.length ? "更新確認が必要" : "問題ありません"]
+  ].map(([label, value, note]) => `<div class="metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div></div>`).join("");
+  $("#renewalList").innerHTML = renewals.map((license) => `<div class="list-row"><div><div class="list-main">${esc(license.name)}</div><div class="list-sub">${esc(toolById(license.toolId)?.name)} / 更新日 ${formatDate(license.renewal)}</div></div>${badge("warning", "warning")}</div>`).join("") || '<div class="empty">更新予定はありません</div>';
+  $("#recentLogs").innerHTML = state.logs.slice(-4).reverse().map((log) => `<div class="list-row"><div><div class="list-main">${esc(log.action)}</div><div class="list-sub">${esc(log.target)} ・ ${esc(log.user)}</div></div><div class="list-sub">${esc(log.at)}</div></div>`).join("") || '<div class="empty">操作履歴はありません</div>';
+  if (expiring.some((license) => daysUntil(license.renewal) < 0)) notify("更新期限を過ぎたライセンスがあります。確認してください。", true);
 }
 
 function renderTools() {
@@ -470,6 +472,7 @@ const field = (name, label, type = "text", value = "", options = "", attrs = "")
   }</div>`;
 
 function openForm(type, item = null) {
+  if (!isAdmin()) return notify("この操作には管理者権限が必要です。", true);
   formContext = { type, id: item?.id };
   const edit = Boolean(item);
   let title = `${edit ? "編集" : "登録"}`;
@@ -611,8 +614,7 @@ function validateForm(type, id, data) {
   return "";
 }
 
-$("#entityForm").addEventListener("submit", (event) => {
-  if (event.submitter?.value === "cancel") return;
+$("#entityForm").addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const { type, id } = formContext;
@@ -634,79 +636,55 @@ $("#entityForm").addEventListener("submit", (event) => {
   } else {
     items.push({ id: nextId(items), ...DEFAULTS[type], ...data });
   }
-
-  addLog(id ? "更新" : "登録", TYPE_LABELS[type]);
-  save();
-  $("#formDialog").close();
-  notify("保存しました");
-  render();
+  const payload = { ...values };
+  if (formContext.type === "license" || formContext.type === "assignment") {
+    payload.toolId = payload.toolId ? Number(payload.toolId) : payload.toolId;
+    payload.quantity = payload.quantity ? Number(payload.quantity) : payload.quantity;
+    payload.memberId = payload.memberId ? Number(payload.memberId) : payload.memberId;
+    payload.licenseId = payload.licenseId ? Number(payload.licenseId) : payload.licenseId;
+  }
+  try {
+    await apiFetch(apiEntity(formContext.type, formContext.id), {
+      method: formContext.id ? "PUT" : "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(payload)
+    });
+    await loadServerData();
+    $("#formDialog").close();
+    notify("保存しました");
+  } catch (error) {
+    notify(error.message, true);
+  }
 });
+$("#closeFormButton").addEventListener("click", () => $("#formDialog").close());
+$("#cancelFormButton").addEventListener("click", () => $("#formDialog").close());
 
-// =====================================================
-// クリック操作（画面切替・編集・削除・返却）
-// =====================================================
-function deleteBlockedReason(type, item) {
-  if (type === "tool" && state.licenses.some((license) => license.toolId === item.id)) {
-    return "ライセンスが登録されているツールは削除できません。先にライセンスを削除してください。";
-  }
-  if (type === "license" && usedCount(item.id) > 0) {
-    return "割り当て中のライセンスは削除できません。先に返却してください。";
-  }
-  if (
-    type === "member" &&
-    state.assignments.some((a) => a.memberId === item.id && a.status === "assigned")
-  ) {
-    return "ライセンスを利用中の利用者は削除できません。先に返却してください。";
-  }
-  return "";
-}
-
-// =====================================================
-// クリック操作（画面切替・編集・削除・返却）
-// =====================================================
-document.addEventListener("click", (event) => {
-  const target = event.target.closest(
-    "[data-view], [data-view-target], [data-edit], [data-delete], [data-release]",
-  );
+document.addEventListener("click", async (event) => {
+  const target = event.target.closest("[data-view], [data-view-target], [data-edit], [data-delete], [data-release]");
   if (!target) return;
-
-  if (target.dataset.view || target.dataset.viewTarget) {
-    return showView(target.dataset.view || target.dataset.viewTarget);
-  }
-
+  if (target.dataset.view || target.dataset.viewTarget) return showView(target.dataset.view || target.dataset.viewTarget);
   const type = target.dataset.edit || target.dataset.delete;
-
-  if (target.dataset.edit) {
-    return openForm(
-      type,
-      { tool: state.tools, license: state.licenses, member: state.members }[type].find(
-        (item) => item.id === Number(target.dataset.id),
-      ),
-    );
-  }
-
+  if (target.dataset.edit) return openForm(type, ({ tool: state.tools, license: state.licenses, member: state.members }[type]).find((item) => item.id === Number(target.dataset.id)));
   if (target.dataset.delete) {
-    const items = state[COLLECTIONS[type]];
+    const items = type === "tool" ? state.tools : type === "license" ? state.licenses : state.members;
     const item = items.find((entry) => entry.id === Number(target.dataset.id));
-
-    const blocked = deleteBlockedReason(type, item);
-    if (blocked) return notify(blocked, true);
     if (!confirm(`${item.name}を削除しますか？`)) return;
-
-    items.splice(items.indexOf(item), 1);
-    addLog("削除", item.name);
-    save();
-    notify("削除しました");
-    render();
+    try {
+      await apiFetch(apiEntity(type, item.id), { method: "DELETE", headers: authHeaders() });
+      await loadServerData();
+      notify("削除しました");
+    } catch (error) {
+      notify(error.message, true);
+    }
   }
-
   if (target.dataset.release) {
-    const assignment = state.assignments.find((item) => item.id === Number(target.dataset.release));
-    assignment.status = "released";
-    addLog("返却", licenseById(assignment.licenseId)?.name);
-    save();
-    notify("返却しました");
-    render();
+    try {
+      await apiFetch(`/api/assignments/${target.dataset.release}/release`, { method: "POST", headers: authHeaders(), body: "{}" });
+      await loadServerData();
+      notify("返却しました");
+    } catch (error) {
+      notify(error.message, true);
+    }
   }
 });
 
@@ -875,4 +853,6 @@ $("#memberImport").addEventListener("change", (event) => {
 // 初期表示
 // =====================================================
 updateAuthView();
+setAuthMode("login");
 render();
+restoreSession();
