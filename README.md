@@ -6,6 +6,8 @@
 
 `index.html` をブラウザで開いてください。追加・編集・削除・返却したデータは、ブラウザの `localStorage` に保存されます。
 
+`server.py` は SQLite ファイルを自動生成しません。SQLite を使うバックエンドが必要な場合は、既存のデータベースを用意してから起動してください。
+
 ```text
 index.html
 styles.css
