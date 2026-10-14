@@ -1,0 +1,40 @@
+<section id="licenses" class="view">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">LICENSES</p>
+      <h1>ライセンス管理</h1>
+      <p>契約数、利用数、更新日を管理します。</p>
+    </div>
+    <div class="heading-actions">
+      <button class="secondary-button" id="exportLicensesButton" type="button">
+        CSV出力</button
+      ><button class="primary-button" id="addLicenseButton" type="button">
+        ＋ ライセンスを登録
+      </button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <input
+      class="search"
+      id="licenseSearch"
+      type="search"
+      placeholder="プラン名・ツール名で検索"
+    /><span id="licenseCount" class="result-count"></span>
+  </div>
+  <div class="panel table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ライセンス名</th>
+          <th>対象ツール</th>
+          <th>契約数</th>
+          <th>利用数</th>
+          <th>更新日</th>
+          <th>ステータス</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="licensesTable"></tbody>
+    </table>
+  </div>
+</section>

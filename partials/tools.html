@@ -1,0 +1,33 @@
+<section id="tools" class="view">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">MASTER</p>
+      <h1>ツール管理</h1>
+      <p>管理対象のソフトウェアとクラウドサービスを管理します。</p>
+    </div>
+    <button class="primary-button" id="addToolButton" type="button">＋ ツールを登録</button>
+  </div>
+  <div class="toolbar">
+    <input
+      class="search"
+      id="toolSearch"
+      type="search"
+      placeholder="ツール名・提供会社で検索"
+    /><span id="toolCount" class="result-count"></span>
+  </div>
+  <div class="panel table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ツール名</th>
+          <th>提供会社</th>
+          <th>カテゴリ</th>
+          <th>ライセンス数</th>
+          <th>ステータス</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="toolsTable"></tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,56 @@
+/* ボタン・リンク風ボタン */
+.icon-button,
+.nav-item,
+.text-button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+.icon-button {
+  color: #fff;
+}
+.primary-button,
+.secondary-button {
+  border: 0;
+  border-radius: 7px;
+  padding: 11px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.primary-button {
+  background: #176bad;
+  color: #fff;
+}
+.primary-button:hover {
+  background: #12598e;
+}
+.secondary-button {
+  background: #edf1f5;
+  color: #45576b;
+}
+.text-button {
+  color: #176bad;
+  font-size: 13px;
+}
+.link-button {
+  border: 0;
+  background: none;
+  color: #176bad;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+}
+.danger {
+  color: #b33d3d;
+}
+.danger:hover {
+  color: #8e2424;
+}
+.icon-button:focus-visible {
+  outline-color: #fff;
+}
+.file-button {
+  display: inline-block;
+}
