@@ -16,6 +16,8 @@ C:/Users/81809/AppData/Local/Microsoft/WindowsApps/python3.11.exe .\server.py
 
 `index.html` を直接開く方法は画面確認用です。直接起動した場合はAPIに接続できないため、ログイン・アカウント登録は動作しません。
 
+`server.py` は SQLite ファイルを自動生成しません。SQLite を使うバックエンドが必要な場合は、既存のデータベースを用意してから起動してください。
+
 ```text
 index.html
 styles.css
