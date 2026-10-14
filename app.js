@@ -1,4 +1,7 @@
 const seed = {
+  users: [
+    { id: 1, name: "管理者", email: "admin@example.jp", password: "demo1234", role: "admin" }
+  ],
   tools: [
     { id: 1, name: "Microsoft 365", provider: "Microsoft", category: "業務ツール", status: "active" },
     { id: 2, name: "Adobe Creative Cloud", provider: "Adobe", category: "デザイン", status: "active" },
@@ -23,7 +26,13 @@ const seed = {
 };
 
 const state = JSON.parse(localStorage.getItem("licenseManagerState") || "null") || seed;
+const storedUsers = Array.isArray(state.users) ? state.users : [];
+state.users = [...seed.users, ...storedUsers]
+  .filter((user, index, users) => user?.email && users.findIndex((item) => item.email.toLowerCase() === user.email.toLowerCase()) === index)
+  .map((user) => ({ ...user, email: user.email.trim().toLowerCase() }));
+if (!Array.isArray(state.users) || state.users.length !== storedUsers.length) localStorage.setItem("licenseManagerState", JSON.stringify(state));
 let formContext = null;
+let authMode = "login";
 const $ = (selector) => document.querySelector(selector);
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 const save = () => localStorage.setItem("licenseManagerState", JSON.stringify(state));
@@ -34,10 +43,84 @@ const memberById = (id) => state.members.find((member) => member.id === Number(i
 const formatDate = (date) => date ? new Date(`${date}T00:00:00`).toLocaleDateString("ja-JP") : "-";
 const statusLabel = (status) => ({ active: "有効", assigned: "割り当て中", released: "返却済み", inactive: "無効" }[status] || status);
 const badge = (status, extra = "") => `<span class="badge ${extra || status}">${esc(statusLabel(status))}</span>`;
-const authenticated = () => sessionStorage.getItem("licenseManagerAuthenticated") === "true";
+const authenticated = () => sessionStorage.getItem("licenseManagerAuthenticated") === "true" && Boolean(sessionStorage.getItem("licenseManagerToken"));
+const apiFetch = (path, options = {}) => fetch(path, {
+  ...options,
+  headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+}).then(async (response) => {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "サーバーとの通信に失敗しました");
+  return payload;
+});
+const authHeaders = () => {
+  const token = sessionStorage.getItem("licenseManagerToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+const isAdmin = () => JSON.parse(sessionStorage.getItem("licenseManagerUser") || "null")?.role === "admin";
+const entityPaths = { tool: "tools", license: "licenses", member: "members", assignment: "assignments" };
+const apiEntity = (type, id = "") => `/api/${entityPaths[type]}${id ? `/${id}` : ""}`;
+
+async function loadServerData() {
+  if (!authenticated()) return;
+  const data = await apiFetch("/api/data", { headers: authHeaders() });
+  Object.assign(state, data);
+  render();
+}
 
 function updateAuthView() {
   $("#loginScreen").classList.toggle("hidden", authenticated());
+  const userId = Number(sessionStorage.getItem("licenseManagerUserId"));
+  const storedUser = JSON.parse(sessionStorage.getItem("licenseManagerUser") || "null");
+  const user = state.users.find((item) => item.id === userId) || storedUser;
+  if (user) $("#currentUser").textContent = `${user.name}（${user.role === "admin" ? "管理者" : "利用者"}）`;
+}
+
+function storeAuthenticatedUser(user, token) {
+  sessionStorage.setItem("licenseManagerAuthenticated", "true");
+  sessionStorage.setItem("licenseManagerUserId", String(user.id));
+  sessionStorage.setItem("licenseManagerUser", JSON.stringify(user));
+  sessionStorage.setItem("licenseManagerToken", token);
+  if (!state.users.some((item) => item.id === user.id)) {
+    state.users.push(user);
+    save();
+  }
+}
+
+function clearAuthenticatedUser() {
+  sessionStorage.removeItem("licenseManagerAuthenticated");
+  sessionStorage.removeItem("licenseManagerUserId");
+  sessionStorage.removeItem("licenseManagerUser");
+  sessionStorage.removeItem("licenseManagerToken");
+}
+
+async function restoreSession() {
+  const token = sessionStorage.getItem("licenseManagerToken");
+  if (!token) return updateAuthView();
+  try {
+    const { user } = await apiFetch("/api/session", { headers: { Authorization: `Bearer ${token}` } });
+    if (!user) {
+      clearAuthenticatedUser();
+    } else {
+      storeAuthenticatedUser(user, token);
+    }
+  } catch {
+    clearAuthenticatedUser();
+  }
+  updateAuthView();
+  await loadServerData();
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const registering = mode === "register";
+  $("#authTitle").textContent = registering ? "アカウント登録" : "ログイン";
+  $("#authDescription").textContent = registering ? "usersテーブルに新しいアカウントを登録します。" : "登録済みのアカウントでログインしてください。";
+  $("#loginNameField").hidden = !registering;
+  $("#loginName").required = registering;
+  $("#loginPassword").autocomplete = registering ? "new-password" : "current-password";
+  $("#loginForm .login-button").textContent = registering ? "アカウントを登録" : "ログイン";
+  $("#registerToggle").textContent = registering ? "ログイン画面に戻る" : "新しいアカウントを登録する";
+  $("#loginError").hidden = true;
 }
 
 function downloadCsv(filename, headers, rows) {
@@ -77,15 +160,21 @@ function notify(message, error = false) {
 function renderDashboard() {
   const assigned = state.assignments.filter((item) => item.status === "assigned").length;
   const total = state.licenses.reduce((sum, item) => sum + item.quantity, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntil = (date) => date ? Math.ceil((new Date(`${date}T00:00:00`) - today) / 86400000) : Infinity;
+  const expiring = state.licenses.filter((license) => daysUntil(license.renewal) <= 30);
   const renewals = [...state.licenses].sort((a, b) => a.renewal.localeCompare(b.renewal)).slice(0, 3);
   $("#metrics").innerHTML = [
     ["登録ツール", state.tools.length, "管理対象のサービス"],
     ["ライセンス総数", total, "契約済みライセンス"],
     ["割り当て済み", assigned, "現在利用中"],
-    ["利用可能数", total - assigned, "割り当て可能"]
+    ["利用可能数", total - assigned, "割り当て可能"],
+    ["期限30日以内", expiring.length, expiring.length ? "更新確認が必要" : "問題ありません"]
   ].map(([label, value, note]) => `<div class="metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div></div>`).join("");
   $("#renewalList").innerHTML = renewals.map((license) => `<div class="list-row"><div><div class="list-main">${esc(license.name)}</div><div class="list-sub">${esc(toolById(license.toolId)?.name)} / 更新日 ${formatDate(license.renewal)}</div></div>${badge("warning", "warning")}</div>`).join("") || '<div class="empty">更新予定はありません</div>';
   $("#recentLogs").innerHTML = state.logs.slice(-4).reverse().map((log) => `<div class="list-row"><div><div class="list-main">${esc(log.action)}</div><div class="list-sub">${esc(log.target)} ・ ${esc(log.user)}</div></div><div class="list-sub">${esc(log.at)}</div></div>`).join("") || '<div class="empty">操作履歴はありません</div>';
+  if (expiring.some((license) => daysUntil(license.renewal) < 0)) notify("更新期限を過ぎたライセンスがあります。確認してください。", true);
 }
 
 function renderTools() {
@@ -130,6 +219,7 @@ function render() {
 const field = (name, label, type = "text", value = "", options = "") => `<div class="field"><label for="field-${name}">${label}</label>${type === "select" ? `<select id="field-${name}" name="${name}" required>${options}</select>` : `<input id="field-${name}" name="${name}" type="${type}" value="${esc(value)}" required>`}</div>`;
 
 function openForm(type, item = null) {
+  if (!isAdmin()) return notify("この操作には管理者権限が必要です。", true);
   formContext = { type, id: item?.id };
   const edit = Boolean(item);
   let title = `${edit ? "編集" : "登録"}`;
@@ -147,45 +237,63 @@ function addLog(action, target) {
   state.logs.push({ id: nextId(state.logs), action, target, at: new Date().toLocaleString("ja-JP"), user: "管理者" });
 }
 
-$("#entityForm").addEventListener("submit", (event) => {
-  if (event.submitter?.value === "cancel") return;
+$("#entityForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = Object.fromEntries(new FormData(event.currentTarget));
   if (formContext.type === "assignment" && !formContext.id) {
     const validationMessage = validateAssignment(Number(values.memberId), Number(values.licenseId));
     if (validationMessage) return notify(validationMessage, true);
   }
-  const collection = { tool: "tools", license: "licenses", member: "members", assignment: "assignments" }[formContext.type];
-  if (formContext.id) Object.assign(state[collection].find((item) => item.id === formContext.id), values);
-  else state[collection].push({ id: nextId(state[collection]), ...(formContext.type === "tool" ? { status: "active" } : formContext.type === "license" ? { status: "active", quantity: Number(values.quantity), toolId: Number(values.toolId) } : formContext.type === "member" ? { status: "active" } : { memberId: Number(values.memberId), licenseId: Number(values.licenseId), status: "assigned", assignedBy: "管理者" }) , ...values });
-  if (formContext.type === "license") {
-    const license = formContext.id ? licenseById(formContext.id) : state.licenses.at(-1);
-    license.quantity = Number(values.quantity);
-    license.toolId = Number(values.toolId);
+  const payload = { ...values };
+  if (formContext.type === "license" || formContext.type === "assignment") {
+    payload.toolId = payload.toolId ? Number(payload.toolId) : payload.toolId;
+    payload.quantity = payload.quantity ? Number(payload.quantity) : payload.quantity;
+    payload.memberId = payload.memberId ? Number(payload.memberId) : payload.memberId;
+    payload.licenseId = payload.licenseId ? Number(payload.licenseId) : payload.licenseId;
   }
-  if (formContext.type === "assignment") {
-    const assignment = formContext.id ? state.assignments.find((item) => item.id === formContext.id) : state.assignments.at(-1);
-    assignment.memberId = Number(values.memberId);
-    assignment.licenseId = Number(values.licenseId);
+  try {
+    await apiFetch(apiEntity(formContext.type, formContext.id), {
+      method: formContext.id ? "PUT" : "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(payload)
+    });
+    await loadServerData();
+    $("#formDialog").close();
+    notify("保存しました");
+  } catch (error) {
+    notify(error.message, true);
   }
-  addLog(`${formContext.id ? "更新" : "登録"}`, { tool: "ツール", license: "ライセンス", member: "利用者", assignment: "割り当て" }[formContext.type]);
-  save(); $("#formDialog").close(); notify("保存しました"); render();
 });
+$("#closeFormButton").addEventListener("click", () => $("#formDialog").close());
+$("#cancelFormButton").addEventListener("click", () => $("#formDialog").close());
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const target = event.target.closest("[data-view], [data-view-target], [data-edit], [data-delete], [data-release]");
   if (!target) return;
   if (target.dataset.view || target.dataset.viewTarget) return showView(target.dataset.view || target.dataset.viewTarget);
   const type = target.dataset.edit || target.dataset.delete;
   if (target.dataset.edit) return openForm(type, ({ tool: state.tools, license: state.licenses, member: state.members }[type]).find((item) => item.id === Number(target.dataset.id)));
   if (target.dataset.delete) {
-    const collection = { tool: "tools", license: "licenses", member: "member" }[type];
     const items = type === "tool" ? state.tools : type === "license" ? state.licenses : state.members;
     const item = items.find((entry) => entry.id === Number(target.dataset.id));
     if (!confirm(`${item.name}を削除しますか？`)) return;
-    items.splice(items.indexOf(item), 1); addLog("削除", item.name); save(); notify("削除しました"); render();
+    try {
+      await apiFetch(apiEntity(type, item.id), { method: "DELETE", headers: authHeaders() });
+      await loadServerData();
+      notify("削除しました");
+    } catch (error) {
+      notify(error.message, true);
+    }
   }
-  if (target.dataset.release) { const assignment = state.assignments.find((item) => item.id === Number(target.dataset.release)); assignment.status = "released"; addLog("返却", licenseById(assignment.licenseId)?.name); save(); notify("返却しました"); render(); }
+  if (target.dataset.release) {
+    try {
+      await apiFetch(`/api/assignments/${target.dataset.release}/release`, { method: "POST", headers: authHeaders(), body: "{}" });
+      await loadServerData();
+      notify("返却しました");
+    } catch (error) {
+      notify(error.message, true);
+    }
+  }
 });
 
 document.querySelectorAll(".nav-item").forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
@@ -195,20 +303,39 @@ $("#addLicenseButton").addEventListener("click", () => openForm("license"));
 $("#addMemberButton").addEventListener("click", () => openForm("member"));
 $("#addAssignmentButton").addEventListener("click", () => openForm("assignment"));
 ["toolSearch", "licenseSearch", "memberSearch"].forEach((id) => $(`#${id}`).addEventListener("input", render));
-$("#loginForm").addEventListener("submit", (event) => {
+$("#loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
+  const name = $("#loginName").value.trim();
   const email = $("#loginEmail").value.trim().toLowerCase();
   const password = $("#loginPassword").value;
-  const valid = email === "admin@example.jp" && password === "demo1234";
-  $("#loginError").hidden = valid;
-  if (valid) {
-    sessionStorage.setItem("licenseManagerAuthenticated", "true");
+  if (authMode === "register") {
+    if (!name) return notify("氏名を入力してください。", true);
+    if (password.length < 8) return notify("パスワードは8文字以上で入力してください。", true);
+    try {
+      await apiFetch("/api/auth/register", { method: "POST", body: JSON.stringify({ name, email, password }) });
+      $("#loginPassword").value = "";
+      setAuthMode("login");
+      notify("アカウントを登録しました。ログインしてください。");
+    } catch (error) {
+      notify(error.message, true);
+    }
+    return;
+  }
+  try {
+    const { token, user } = await apiFetch("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+    storeAuthenticatedUser(user, token);
     updateAuthView();
     notify("ログインしました");
+  } catch (error) {
+    $("#loginError").textContent = error.message;
+    $("#loginError").hidden = false;
   }
 });
-$("#logoutButton").addEventListener("click", () => {
-  sessionStorage.removeItem("licenseManagerAuthenticated");
+$("#registerToggle").addEventListener("click", () => setAuthMode(authMode === "login" ? "register" : "login"));
+$("#logoutButton").addEventListener("click", async () => {
+  const token = sessionStorage.getItem("licenseManagerToken");
+  if (token) await apiFetch("/api/auth/logout", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+  clearAuthenticatedUser();
   updateAuthView();
 });
 $("#exportLicensesButton").addEventListener("click", () => downloadCsv("licenses.csv", ["ライセンス名", "対象ツール", "契約数", "利用数", "更新日", "ステータス"], state.licenses.map((license) => [license.name, toolById(license.toolId)?.name, license.quantity, state.assignments.filter((item) => item.licenseId === license.id && item.status === "assigned").length, license.renewal, statusLabel(license.status)])));
@@ -229,5 +356,6 @@ $("#memberImport").addEventListener("change", (event) => {
   };
   reader.readAsText(file, "UTF-8");
 });
-updateAuthView();
+setAuthMode("login");
 render();
+restoreSession();

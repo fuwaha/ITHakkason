@@ -10,13 +10,15 @@
   <section id="loginScreen" class="login-screen">
     <form id="loginForm" class="login-card">
       <p class="eyebrow">LICENSE MANAGEMENT</p>
-      <h1>ログイン</h1>
-      <p class="login-description">管理画面を利用するにはログインしてください。</p>
-      <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" value="admin@example.jp" required></div>
-      <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" placeholder="demo1234" required></div>
+      <h1 id="authTitle">ログイン</h1>
+      <p id="authDescription" class="login-description">登録済みのアカウントでログインしてください。</p>
+      <div class="field" id="loginNameField" hidden><label for="loginName">氏名</label><input id="loginName" type="text" autocomplete="name"></div>
+      <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" value="admin@example.jp" autocomplete="email" required></div>
+      <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" placeholder="demo1234" autocomplete="current-password" required></div>
       <p id="loginError" class="form-error" hidden>メールアドレスまたはパスワードが違います。</p>
       <button class="primary-button login-button" type="submit">ログイン</button>
-      <p class="login-hint">デモ用: admin@example.jp / demo1234</p>
+      <button id="registerToggle" class="text-button auth-toggle" type="button">新しいアカウントを登録する</button>
+      <p class="login-hint">初期管理者: admin@example.jp / demo1234</p>
     </form>
   </section>
   <header class="topbar">
@@ -95,9 +97,9 @@
 
   <dialog id="formDialog">
     <form method="dialog" id="entityForm">
-      <div class="dialog-heading"><h2 id="dialogTitle"></h2><button class="close-button" value="cancel" type="submit" aria-label="閉じる">×</button></div>
+      <div class="dialog-heading"><h2 id="dialogTitle"></h2><button id="closeFormButton" class="close-button" type="button" aria-label="閉じる">×</button></div>
       <div id="formFields" class="form-fields"></div>
-      <div class="dialog-actions"><button class="secondary-button" value="cancel" type="submit">キャンセル</button><button class="primary-button" id="saveButton" value="default" type="submit">保存</button></div>
+      <div class="dialog-actions"><button id="cancelFormButton" class="secondary-button" type="button">キャンセル</button><button class="primary-button" id="saveButton" value="default" type="submit">保存</button></div>
     </form>
   </dialog>
   <script src="app.js"></script>

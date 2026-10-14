@@ -1,3 +1,5 @@
 {
-    "python-envs.defaultEnvManager": "ms-python.python:system"
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "lmstudioCode.permissionMode": "default",
+    "lmstudioCode.minContextLength": 131072
 }
