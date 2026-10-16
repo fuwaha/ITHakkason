@@ -47,7 +47,8 @@ const field = (name, label, type = "text", value = "", options = "", attrs = "")
   }</div>`;
 
 export function openForm(type, item = null) {
-  if (!isAdmin()) return notify("この操作には管理者権限が必要です。", true);
+  // 出品は管理者でなくてもできる
+  if (type !== "listing" && !isAdmin()) return notify("この操作には管理者権限が必要です。", true);
   formContext = { type, id: item?.id };
   const edit = Boolean(item);
   let title = `${edit ? "編集" : "登録"}`;
@@ -77,6 +78,21 @@ export function openForm(type, item = null) {
       ) +
       field("quantity", "契約数", "number", item?.quantity || 1, "", 'min="1" step="1"') +
       field("renewal", "更新日", "date", item?.renewal);
+  }
+
+  if (type === "listing") {
+    fields =
+      field("name", "商品名", "text", item?.name) +
+      field("description", "説明", "text", item?.description) +
+      field("category", "カテゴリ", "text", item?.category) +
+      field(
+        "billing",
+        "販売方法",
+        "select",
+        "",
+        `<option value="monthly">月額</option><option value="one-time">買い切り</option>`,
+      ) +
+      field("price", "価格（円）", "number", item?.price ?? 1000, "", 'min="0" step="1"');
   }
 
   if (type === "member") {
@@ -110,9 +126,11 @@ export function openForm(type, item = null) {
       field("assignedAt", "割り当て日", "date", todayString());
   }
 
-  $("#dialogTitle").textContent = `${title}${
-    { tool: "ツール", license: "ライセンス", member: "利用者", assignment: "割り当て" }[type]
-  }`;
+  $("#dialogTitle").textContent =
+    type === "listing"
+      ? "出品する"
+      : `${title}${{ tool: "ツール", license: "ライセンス", member: "利用者", assignment: "割り当て" }[type]
+      }`;
   $("#formFields").innerHTML = fields;
   hideFormError();
   $("#formDialog").showModal();
@@ -136,6 +154,9 @@ function normalizeValues(type, values) {
   if (type === "assignment") {
     return { ...values, memberId: Number(values.memberId), licenseId: Number(values.licenseId) };
   }
+  if (type === "listing") {
+    return { ...values, price: Number(values.price) };
+  }
   return values;
 }
 
@@ -149,6 +170,9 @@ function validateForm(type, id, data) {
     if (id && data.quantity < usedCount(id)) {
       return `現在${usedCount(id)}件割り当て中のため、契約数をそれより少なくできません。`;
     }
+  }
+  if (type === "listing" && !(Number.isInteger(data.price) && data.price >= 0)) {
+    return "価格は0以上の整数で入力してください。";
   }
   if (type === "member") {
     const duplicated = state.members.some(
@@ -181,10 +205,17 @@ $("#entityForm").addEventListener("submit", (event) => {
       data,
     );
   } else {
-    items.push({ id: nextId(items), ...DEFAULTS[type], ...data, ...(type === "assignment" ? { assignedBy: currentUser()?.name ?? "管理者" } : {}) });
+    const extra =
+      type === "assignment"
+        ? { assignedBy: currentUser()?.name ?? "管理者" }
+        : type === "listing"
+          ? { sellerId: currentUser()?.id, seller: currentUser()?.name }
+          : {};
+    items.push({ id: nextId(items), ...DEFAULTS[type], ...data, ...extra });
   }
-
-  addLog(id ? "更新" : "登録", TYPE_LABELS[type]);
+  
+  if (type === "listing") addLog("出品", data.name);
+  else addLog(id ? "更新" : "登録", TYPE_LABELS[type]);
   save();
   $("#formDialog").close();
   notify("保存しました");

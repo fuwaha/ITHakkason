@@ -14,6 +14,10 @@ state.users = [...seed.users, ...storedUsers]
   .filter((user, index, users) => user?.email && users.findIndex((item) => item.email.toLowerCase() === user.email.toLowerCase()) === index)
   .map((user) => ({ ...user, email: user.email.trim().toLowerCase() }));
 if (!Array.isArray(state.users) || state.users.length !== storedUsers.length) localStorage.setItem("licenseManagerState", JSON.stringify(state));
+if (!Array.isArray(state.listings)) {
+  state.listings = seed.listings; // 古い保存データには出品がないので補う
+  localStorage.setItem("licenseManagerState", JSON.stringify(state));
+}
 
 export const save = () => localStorage.setItem("licenseManagerState", JSON.stringify(state));
 

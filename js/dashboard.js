@@ -4,9 +4,11 @@ import { $, daysUntil, esc, formatDate, renewalBadge } from "./helpers.js";
 
 export function renderDashboard() {
   const assigned = state.assignments.filter((item) => item.status === "assigned").length;
-  const total = state.licenses.reduce((sum, item) => sum + item.quantity, 0);
-  const expiring = state.licenses.filter((license) => daysUntil(license.renewal) <= 30);
-  const renewals = [...state.licenses]
+  const activeLicenses = state.licenses.filter((license) => license.status === "active");
+  const renewable = activeLicenses.filter((license) => license.renewal); // 買い切りは更新日なし
+  const total = activeLicenses.reduce((sum, item) => sum + item.quantity, 0);
+  const expiring = renewable.filter((license) => daysUntil(license.renewal) <= 30);
+  const renewals = [...renewable]
     .sort((a, b) => a.renewal.localeCompare(b.renewal))
     .slice(0, 3);
 

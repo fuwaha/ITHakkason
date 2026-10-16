@@ -62,6 +62,7 @@ $("#loginForm").addEventListener("submit", (event) => {
     sessionStorage.setItem("licenseManagerUserId", String(user.id));
     $("#loginPassword").value = "";
     updateAuthView();
+    document.dispatchEvent(new Event("auth-changed")); // ユーザーごとの表示（自分の出品など）を更新
 
     // ログイン直後に、更新期限を過ぎたライセンスがあれば一緒に知らせる
     const expired = state.licenses.some((license) => daysUntil(license.renewal) < 0);
@@ -81,4 +82,5 @@ $("#registerToggle").addEventListener("click", () =>
 $("#logoutButton").addEventListener("click", () => {
   sessionStorage.removeItem("licenseManagerUserId");
   updateAuthView();
+  document.dispatchEvent(new Event("auth-changed"));
 });

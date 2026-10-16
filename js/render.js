@@ -6,6 +6,7 @@ import { renderTools } from "./tools.js";
 import { renderLicenses } from "./licenses.js";
 import { renderMembers } from "./members.js";
 import { renderAssignments } from "./assignments.js";
+import { renderMarket } from "./market.js";
 
 export function showView(view) {
   document
@@ -19,6 +20,7 @@ export function showView(view) {
 
 export function render() {
   renderDashboard();
+  renderMarket();
   renderTools();
   renderLicenses();
   renderMembers();
@@ -26,6 +28,9 @@ export function render() {
   renderLogs();
 }
 
-["toolSearch", "licenseSearch", "memberSearch"].forEach((id) =>
+// ログイン・ログアウトで表示内容（自分の出品など）が変わるので再描画する
+document.addEventListener("auth-changed", render);
+ 
+["toolSearch", "licenseSearch", "memberSearch", "marketSearch", "marketFilter"].forEach((id) =>
   $(`#${id}`).addEventListener("input", render),
 );

@@ -9,6 +9,7 @@ try {
   await import("./forms.js");
   await import("./actions.js");
   await import("./csv.js");
+  await import("./market-actions.js");
   const { updateAuthView, setAuthMode } = await import("./auth.js");
   const { render } = await import("./render.js");
 

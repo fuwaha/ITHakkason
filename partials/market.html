@@ -1,0 +1,41 @@
+<section id="market" class="view">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">MARKETPLACE</p>
+      <h1>マーケット</h1>
+      <p>ライセンスを売ったり買ったりできます。購入するとライセンス管理に追加されます。</p>
+    </div>
+    <button class="primary-button" id="addListingButton" type="button">＋ 出品する</button>
+  </div>
+  <div class="toolbar">
+    <input
+      class="search"
+      id="marketSearch"
+      type="search"
+      placeholder="商品名・出品者・カテゴリで検索"
+    />
+    <select class="search market-filter" id="marketFilter" aria-label="販売方法で絞り込み">
+      <option value="all">すべての販売方法</option>
+      <option value="monthly">月額</option>
+      <option value="one-time">買い切り</option>
+    </select>
+    <span id="marketCount" class="result-count"></span>
+  </div>
+  <div class="market-grid" id="marketGrid"></div>
+
+  <h2 class="market-section-title">自分の出品</h2>
+  <div class="panel table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>商品名</th>
+          <th>販売方法</th>
+          <th>価格</th>
+          <th>状態</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="myListingsTable"></tbody>
+    </table>
+  </div>
+</section>

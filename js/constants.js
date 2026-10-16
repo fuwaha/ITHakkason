@@ -5,6 +5,7 @@ export const COLLECTIONS = {
   license: "licenses",
   member: "members",
   assignment: "assignments",
+  listing: "listings",
 };
 
 export const TYPE_LABELS = {
@@ -12,6 +13,7 @@ export const TYPE_LABELS = {
   license: "ライセンス",
   member: "利用者",
   assignment: "割り当て",
+  listing: "出品",
 };
 
 export const DEFAULTS = {
@@ -19,4 +21,5 @@ export const DEFAULTS = {
   license: { status: "active" },
   member: { status: "active" },
   assignment: { status: "assigned" },
+  listing: { status: "active" },
 };
