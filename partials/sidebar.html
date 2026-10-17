@@ -1,12 +1,26 @@
 <aside class="sidebar">
+  <div class="brand">PassHub</div>
   <nav aria-label="メインメニュー">
-    <button type="button" class="nav-item active" data-view="dashboard">
-      ダッシュボード
-    </button>
+    <button type="button" class="nav-item active" data-view="dashboard" aria-current="page">ダッシュボード</button>
     <button type="button" class="nav-item" data-view="tools">ツール管理</button>
     <button type="button" class="nav-item" data-view="licenses">ライセンス管理</button>
-    <button type="button" class="nav-item" data-view="members">利用者管理</button>
-    <button type="button" class="nav-item" data-view="assignments">ライセンス割り当て</button>
+    <button type="button" class="nav-item" data-view="members">社員情報</button>
     <button type="button" class="nav-item" data-view="logs">操作履歴</button>
   </nav>
+  <div class="sidebar-footer">
+    <!-- 自分のアイコンを押すとメニューが開く -->
+    <button type="button" class="user-button" id="userButton" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
+      <span class="sidebar-user" id="currentUser"></span>
+      <svg class="user-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.5 3-3 3 3"/></svg>
+    </button>
+    <div class="user-menu" id="userMenu" role="menu" aria-label="アカウントメニュー" hidden>
+      <div class="user-menu-head" id="userMenuHead"></div>
+      <button type="button" class="menu-item" role="menuitem" data-self="profile">プロフィールを編集</button>
+      <button type="button" class="menu-item" role="menuitem" data-self="changePassword">パスワードを変更</button>
+      <button type="button" class="menu-item admin-only" role="menuitem" data-view="accounts">アカウント管理</button>
+      <div class="menu-separator" role="separator"></div>
+      <button type="button" class="menu-item" role="menuitem" id="themeToggle">ダーク</button>
+      <button type="button" class="menu-item danger" role="menuitem" id="logoutButton">ログアウト</button>
+    </div>
+  </div>
 </aside>

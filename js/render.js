@@ -5,27 +5,49 @@ import { renderDashboard } from "./dashboard.js";
 import { renderTools } from "./tools.js";
 import { renderLicenses } from "./licenses.js";
 import { renderMembers } from "./members.js";
-import { renderAssignments } from "./assignments.js";
+import { renderAccounts } from "./accounts.js";
+import { isAdmin } from "./auth.js";
+
+const RENDERERS = {
+  dashboard: renderDashboard,
+  tools: renderTools,
+  licenses: renderLicenses,
+  members: renderMembers,
+  logs: renderLogs,
+  accounts: renderAccounts,
+};
+
+// 管理者だけが開ける画面
+const ADMIN_VIEWS = new Set(["accounts"]);
 
 export function showView(view) {
+  if (!RENDERERS[view]) return;
+  if (ADMIN_VIEWS.has(view) && !isAdmin()) return;
   document
     .querySelectorAll(".view")
     .forEach((element) => element.classList.toggle("active", element.id === view));
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((element) => element.classList.toggle("active", element.dataset.view === view));
+  document.querySelectorAll(".nav-item").forEach((element) => {
+    const active = element.dataset.view === view;
+    element.classList.toggle("active", active);
+    if (active) {
+      element.setAttribute("aria-current", "page");
+      // スマホの横スクロールメニューで、選んだ項目が見える位置まで動かす
+      element.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    }
+    else element.removeAttribute("aria-current");
+  });
   render();
+  window.scrollTo({ top: 0 });
 }
 
 export function render() {
-  renderDashboard();
-  renderTools();
-  renderLicenses();
-  renderMembers();
-  renderAssignments();
-  renderLogs();
+  Object.values(RENDERERS).forEach((renderer) => renderer());
 }
 
-["toolSearch", "licenseSearch", "memberSearch"].forEach((id) =>
-  $(`#${id}`).addEventListener("input", render),
-);
+// 検索欄・絞り込みは、その画面だけを描き直す
+[
+  ["#toolSearch", "input", renderTools],
+  ["#licenseSearch", "input", renderLicenses],
+  ["#memberSearch", "input", renderMembers],
+  ["#memberType", "change", renderMembers],
+].forEach(([selector, type, renderer]) => $(selector).addEventListener(type, renderer));

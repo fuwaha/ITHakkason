@@ -1,33 +1,34 @@
 <section id="dashboard" class="view active">
   <div class="page-heading">
     <div>
-      <p class="eyebrow">OVERVIEW</p>
       <h1>ダッシュボード</h1>
-      <p>ライセンスの利用状況を一目で確認できます。</p>
+      <p>ライセンスの席と、対応が必要なことを確認できます。</p>
     </div>
-    <button class="primary-button" data-view-target="assignments" type="button">
-      ＋ 割り当てを登録
-    </button>
+    <div class="heading-actions">
+      <button class="primary-button admin-only" data-open-form="assignment" type="button">＋ 割り当てを登録</button>
+    </div>
   </div>
+
   <div class="metrics" id="metrics"></div>
-  <div class="dashboard-grid">
-    <article class="panel">
-      <div class="panel-heading">
-        <h2>更新期限が近いライセンス</h2>
-        <button type="button" class="text-button" data-view-target="licenses">
-          一覧を見る
-        </button>
-      </div>
-      <div id="renewalList"></div>
-    </article>
-    <article class="panel">
-      <div class="panel-heading">
-        <h2>最近の操作</h2>
-        <button type="button" class="text-button" data-view-target="logs">
-          履歴を見る
-        </button>
-      </div>
-      <div id="recentLogs"></div>
-    </article>
+
+  <article class="panel alert-panel">
+    <div class="panel-heading">
+      <h2>対応が必要なこと</h2>
+    </div>
+    <div id="alertList" class="alert-list"></div>
+  </article>
+
+  <div class="section-heading">
+    <h2>席の空き状況</h2>
+    <button type="button" class="text-button" data-view-target="licenses">ライセンス一覧へ</button>
   </div>
+  <div class="pass-grid" id="passList"></div>
+
+  <article class="panel">
+    <div class="panel-heading">
+      <h2>最近の操作</h2>
+      <button type="button" class="text-button" data-view-target="logs">履歴をすべて見る</button>
+    </div>
+    <div id="recentLogs"></div>
+  </article>
 </section>

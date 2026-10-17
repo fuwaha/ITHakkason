@@ -1,48 +1,288 @@
-/* ダッシュボード（指標カード・一覧リスト） */
+/* ダッシュボード（数値の帯・入館パス・最近の操作） */
+
+/* 数値の帯：カードを並べず、1本の帯を縦線で区切る */
+/* 幅が狭くなると折り返す。区切り線は各項目の左と上に影で引き、
+   帯の外にはみ出した分は overflow: hidden で隠す（何列になっても線が崩れない） */
 .metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 18px;
-  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 32px;
 }
 .metric {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 20px;
+  flex: 1 1 170px;
+  padding: 18px 22px;
+  box-shadow: -1px 0 0 var(--color-border-soft), 0 -1px 0 var(--color-border-soft);
 }
 .metric-label {
-  color: #738397;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 .metric-value {
   font-size: 30px;
   font-weight: 700;
-  margin-top: 7px;
+  line-height: 1.2;
+  margin: 4px 0 2px;
+  letter-spacing: -0.01em;
+}
+.metric-value small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-left: 3px;
 }
 .metric-note {
-  color: #3e8a5d;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22px;
+.metric-note.warning {
+  color: var(--color-warning);
+  font-weight: 700;
 }
+.metric-note.danger {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+/* ---- 入館パス（ライセンス1件 = パス1枚） ---- */
+.pass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.pass {
+  --pass-band: transparent;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  min-height: 150px;
+  border-radius: var(--radius-pass);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 0 var(--color-border-soft), 0 6px 18px -12px var(--color-shadow);
+  overflow: hidden;
+}
+.pass.is-warning {
+  --pass-band: var(--signal);
+}
+.pass.is-expired {
+  --pass-band: #e5534b;
+}
+
+/* 左：半券（濃紺。上にストラップ穴） */
+.pass-stub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 34px 20px 18px;
+  background: var(--color-pass-stub);
+  color: #fff;
+  border-top: 5px solid var(--pass-band);
+}
+.pass-slot {
+  position: absolute;
+  top: 13px;
+  left: 20px;
+  width: 30px;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--color-bg);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
+}
+.pass-tool {
+  font-size: 12px;
+  color: var(--color-sidebar-muted);
+}
+
+/* 右：本体。左端を点線の切り取り線にし、上下に切り欠きを付ける */
+.pass-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px 16px 24px;
+  border-left: 2px dashed var(--color-border);
+}
+.pass-body::before,
+.pass-body::after {
+  content: "";
+  position: absolute;
+  left: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+.pass-body::before {
+  top: -9px;
+}
+.pass-body::after {
+  bottom: -9px;
+}
+.pass-seats {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.pass-seats strong {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--color-text);
+  margin-right: 2px;
+}
+
+/* 席メーター：1マス = 1席（席が多いときは1マスで数席ぶん） */
+.seat-meter {
+  display: grid;
+  grid-template-columns: repeat(var(--cells, 20), minmax(0, 1fr));
+  gap: 3px;
+}
+.seat {
+  height: 14px;
+  border-radius: 2px;
+  background: var(--color-seat-free);
+}
+.seat.used {
+  background: var(--color-seat-used);
+}
+.pass.is-full .seat.used {
+  background: var(--color-danger);
+}
+.seat-scale {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: -4px;
+}
+.pass-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* 最近の操作 */
 .list-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 15px;
-  padding: 13px 0;
-  border-bottom: 1px solid #edf1f5;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-soft);
 }
 .list-row:last-child {
   border-bottom: 0;
 }
 .list-main {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 14px;
+}
+.log-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.log-line .badge {
+  min-width: 52px;
+  text-align: center;
+}
+.list-row > .list-sub:last-child {
+  text-align: right;
+  white-space: nowrap;
 }
 .list-sub {
   font-size: 12px;
-  color: #7a899a;
+  color: var(--color-text-muted);
+}
+.empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 28px;
+}
+.pass-grid > .empty {
+  grid-column: 1 / -1;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border-input);
+  border-radius: var(--radius-pass);
+}
+
+/* 対応が必要なこと */
+.alert-panel {
+  margin-bottom: 32px;
+}
+.alert-list {
+  display: grid;
+}
+.alert-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 10px;
+  margin: 0 -10px;
+  width: calc(100% + 20px);
+  border: 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.alert-row:last-child {
+  border-bottom: 0;
+}
+.alert-row:hover {
+  background: var(--color-surface-alt);
+}
+.alert-row .badge {
+  min-width: 64px;
+  text-align: center;
+}
+.alert-text {
+  display: grid;
+  gap: 2px;
+}
+
+/* パスは押すと詳細が開く */
+.pass {
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.pass:hover {
+  box-shadow: 0 1px 0 var(--color-border-soft), 0 12px 26px -14px var(--color-shadow);
+  transform: translateY(-1px);
+}
+.pass-name {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.pass-name:focus-visible {
+  outline-color: var(--signal);
+}
+.pass-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-sidebar-muted);
 }

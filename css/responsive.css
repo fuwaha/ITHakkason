@@ -1,70 +1,292 @@
 /* レスポンシブ（画面幅ごとの調整） */
 @media (max-width: 850px) {
-  .sidebar {
-    width: 190px;
+  .layout {
+    --sidebar-w: 200px;
   }
   .content {
-    padding: 25px 20px;
+    padding: 26px 20px 48px;
   }
-  .metrics {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .dashboard-grid {
+  .pass-grid {
     grid-template-columns: 1fr;
   }
 }
 @media (max-width: 600px) {
-  .topbar {
-    padding: 0 15px;
-  }
-  .topbar-actions span {
-    display: none;
-  }
   .layout {
     display: block;
+    background: none;
   }
+  /* サイドバーは上部の濃紺バーになる */
   .sidebar {
     width: 100%;
-    padding: 8px;
-    overflow-x: auto;
-    border-right: 0;
-    border-bottom: 1px solid #e2e8f0;
+    height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 12px 14px 10px;
+    overflow-y: visible;
+  }
+  .brand {
+    order: 1;
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+  }
+  .brand-mark {
+    width: 18px;
+    height: 23px;
+  }
+  .sidebar-footer {
+    order: 2;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border-top: 0;
+  }
+  /* スマホではアイコンだけ出し、メニューは下に開く */
+  .sidebar-user > span:not(.avatar),
+  .user-chevron {
+    display: none;
+  }
+  .user-button {
+    padding: 2px;
+    border-radius: 50%;
+  }
+  .user-menu {
+    left: auto;
+    right: 0;
+    bottom: auto;
+    top: calc(100% + 8px);
+    width: min(280px, calc(100vw - 28px));
   }
   .sidebar nav {
+    order: 3;
     display: flex;
-    gap: 5px;
+    gap: 4px;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   .nav-item {
     white-space: nowrap;
     width: auto;
     margin: 0;
+    padding: 8px 12px;
+  }
+  .nav-item.active::before {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: 2px;
+    width: auto;
+    height: 3px;
   }
   .content {
-    padding: 20px 14px;
+    padding: 20px 14px 40px;
   }
   .page-heading {
     display: block;
   }
-  .page-heading .primary-button {
-    margin-top: 18px;
+  .page-heading h1 {
+    font-size: 22px;
   }
-  .metrics {
-    gap: 10px;
+  /* 見出しの下に来るボタン群（1つでも複数でも）に余白を付ける */
+  .page-heading > .heading-actions {
+    margin-top: 16px;
+    justify-content: flex-start;
   }
   .metric {
-    padding: 14px;
+    flex-basis: 140px;
+    padding: 14px 16px;
   }
   .metric-value {
     font-size: 24px;
   }
+  /* パスは縦長（上が半券、下が本体）にする */
+  .pass {
+    grid-template-columns: 1fr;
+  }
+  .pass-stub {
+    padding: 30px 18px 14px;
+  }
+  .pass-body {
+    border-left: 0;
+    border-top: 2px dashed var(--color-border);
+    padding: 16px 18px;
+  }
+  .pass-body::before,
+  .pass-body::after {
+    top: -9px;
+    bottom: auto;
+  }
+  .pass-body::before {
+    left: -9px;
+  }
+  .pass-body::after {
+    left: auto;
+    right: -9px;
+  }
   .search {
     width: 100%;
   }
-  .toolbar {
-    display: block;
+  .filter {
+    flex: 1;
   }
   .result-count {
+    margin-left: 0;
+  }
+}
+
+/* スマホ：表を1行ずつのカードにする（各セルの data-label を項目名として表示） */
+@media (max-width: 600px) {
+  .table-wrap {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+  }
+  .table-wrap table,
+  .table-wrap tbody,
+  .table-wrap tr,
+  .table-wrap td {
     display: block;
-    margin-top: 7px;
+    min-width: 0;
+  }
+  .table-wrap thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .table-wrap tr {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .table-wrap tbody tr:hover {
+    background: var(--color-surface);
+  }
+  .table-wrap td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 0;
+    border: 0;
+    text-align: right;
+  }
+  .table-wrap td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-align: left;
+  }
+  /* 名前などの主な列はカードの見出しにする */
+  .table-wrap td.primary {
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 15px;
+    padding: 0 0 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+  .table-wrap td.primary::before,
+  .table-wrap td.actions::before {
+    content: none;
+  }
+  .table-wrap td.primary strong {
+    white-space: normal;
+  }
+  .table-wrap td.actions {
+    justify-content: flex-end;
+    padding-top: 8px;
+  }
+  .table-wrap td.actions:empty {
+    display: none;
+  }
+  .table-wrap .stack {
+    align-items: flex-end;
+  }
+  .table-wrap .usage {
+    width: 150px;
+  }
+  .table-wrap .empty-row td {
+    display: block;
+    text-align: center;
+  }
+  body:not(.is-admin) .table-wrap td.actions {
+    display: none;
+  }
+}
+
+/* フォーム・詳細はスマホで1列にする */
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-list {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .detail-list dd {
+    margin-bottom: 8px;
+  }
+  .alert-row {
+    align-items: flex-start;
+  }
+  .alert-row .badge {
+    min-width: 56px;
+  }
+}
+
+/* 詳細の行はスマホで縦に並べる */
+@media (max-width: 600px) {
+  .detail-stats {
+    grid-template-columns: 1fr;
+  }
+  .detail-stats > div {
+    border-left: 0;
+    border-top: 1px solid var(--color-border-soft);
+  }
+  .detail-stats > div:first-child {
+    border-top: 0;
+  }
+  .detail-items li.holding,
+  .detail-items li.log-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .holding-meta,
+  .log-item > .muted {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
+
+/* 詳細の見出しの右にあるボタンは、スマホでは見出しの下に並べる */
+@media (max-width: 600px) {
+  .detail-section-heading {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .detail-section-heading h3 {
+    width: 100%;
+  }
+  .heading-buttons {
+    gap: 14px;
+  }
+}
+/* iPhone で入力欄を押したときに画面が拡大されないように（16px 未満だと拡大される） */
+@media (max-width: 760px) {
+  .field input,
+  .field select,
+  .field textarea,
+  .search,
+  .filter {
+    font-size: 16px;
   }
 }

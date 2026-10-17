@@ -4,27 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PassHub</title>
+  <!-- 文字：IBM Plex Sans JP（読み込めない環境では OS の日本語フォントで表示される） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div data-include="partials/login.html"></div>
-  <div data-include="partials/topbar.html"></div>
+  <!-- 通知はログイン画面の上にも出せるよう、レイアウトの外に置く -->
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
 
-  <div class="layout">
+  <div data-include="partials/login.html"></div>
+
+  <!-- ログインが確認できるまで管理画面は隠しておく（auth.js が切り替える） -->
+  <div class="layout" id="appLayout" hidden>
     <div data-include="partials/sidebar.html"></div>
 
     <main class="content">
-      <div id="notice" class="notice" role="status" hidden></div>
       <div data-include="partials/dashboard.html"></div>
       <div data-include="partials/tools.html"></div>
       <div data-include="partials/licenses.html"></div>
       <div data-include="partials/members.html"></div>
-      <div data-include="partials/assignments.html"></div>
       <div data-include="partials/logs.html"></div>
+      <div data-include="partials/accounts.html"></div>
     </main>
   </div>
 
   <div data-include="partials/dialog.html"></div>
+  <noscript>PassHub を使うには JavaScript を有効にしてください。</noscript>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
