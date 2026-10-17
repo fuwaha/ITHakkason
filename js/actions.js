@@ -1,11 +1,12 @@
 // クリック操作（画面切替・編集・削除・返却）
 import { licenseById, save, state, usedCount } from "./state.js";
 import { notify } from "./helpers.js";
-import { COLLECTIONS } from "./constants.js";
+import { COLLECTIONS,TYPE_LABELS } from "./constants.js";
 import { isAdmin } from "./auth.js";
 import { addLog } from "./logs.js";
 import { render, showView } from "./render.js";
 import { openForm } from "./forms.js";
+import { askConfirm } from "./confirm.js";
 
 function deleteBlockedReason(type, item) {
   if (type === "tool" && state.licenses.some((license) => license.toolId === item.id)) {
@@ -23,7 +24,7 @@ function deleteBlockedReason(type, item) {
   return "";
 }
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const target = event.target.closest(
     "[data-view], [data-view-target], [data-edit], [data-delete], [data-release]",
   );
@@ -51,7 +52,14 @@ document.addEventListener("click", (event) => {
 
     const blocked = deleteBlockedReason(type, item);
     if (blocked) return notify(blocked, true);
-    if (!confirm(`${item.name}を削除しますか？`)) return;
+
+    const confirmed = await askConfirm({
+      title: `${TYPE_LABELS[type]}の削除`,
+      message: `${item.name} を削除しますか？この操作は元に戻せません。`,
+      okLabel: "削除する",
+      danger: true,
+    });
+    if (!confirmed) return;
 
     items.splice(items.indexOf(item), 1);
     addLog("削除", item.name);

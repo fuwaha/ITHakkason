@@ -112,10 +112,43 @@ export const seed = {
       user: "管理者",
     },
   ],
-    // マーケットの出品（出品者は users の山本・中村）
+  // マーケットの出品（出品者は users の山本・中村）
   listings: [
     {
       id: 1,
+      name: "Microsoft 365",
+      description: "Business Standard プラン。Word・Excel・Teams などが使える業務スイート。",
+      category: "業務ツール",
+      billing: "monthly",
+      price: 1800,
+      sellerId: null,
+      seller: "Microsoft",
+      status: "active",
+    },
+    {
+      id: 2,
+      name: "Adobe Creative Cloud",
+      description: "Creative Cloud Pro プラン。Photoshop・Illustrator などのデザインツール一式。",
+      category: "デザイン",
+      billing: "monthly",
+      price: 7800,
+      sellerId: null,
+      seller: "Adobe",
+      status: "active",
+    },
+    {
+      id: 3,
+      name: "Slack",
+      description: "Pro プラン。チームのチャットとファイル共有ができるコミュニケーションツール。",
+      category: "コミュニケーション",
+      billing: "monthly",
+      price: 1000,
+      sellerId: null,
+      seller: "Salesforce",
+      status: "active",
+    },
+    {
+      id: 4,
       name: "TaskFlow Pro",
       description: "チームのタスクと進捗をまとめて管理できるツール。",
       category: "業務ツール",
@@ -126,7 +159,7 @@ export const seed = {
       status: "active",
     },
     {
-      id: 2,
+      id: 5,
       name: "PixelKit デザインパック",
       description: "UIデザイン用のアイコンと素材のセット。",
       category: "デザイン",
@@ -137,7 +170,7 @@ export const seed = {
       status: "active",
     },
     {
-      id: 3,
+      id: 6,
       name: "LogWatch",
       description: "サーバーのログを監視して異常を通知するツール。",
       category: "開発",
@@ -148,7 +181,7 @@ export const seed = {
       status: "active",
     },
     {
-      id: 4,
+      id: 7,
       name: "QuickInvoice",
       description: "請求書をテンプレートからすぐ作れるツール。",
       category: "業務ツール",

@@ -5,12 +5,14 @@ import { currentUser } from "./auth.js";
 import { addLog } from "./logs.js";
 import { render } from "./render.js";
 import { openForm } from "./forms.js";
-import { billingLabel, priceText } from "./market.js";
+import { billingLabel } from "./market.js";
+import { askCheckout } from "./checkout.js";
+import { askConfirm } from "./confirm.js";
 
 $("#addListingButton").addEventListener("click", () => openForm("listing"));
 
 // 購入: ツールとライセンスを作ってライセンス管理に入れる（決済はダミー）
-function buy(listing) {
+async function buy(listing) {
   const user = currentUser();
   if (listing.sellerId === user?.id) return notify("自分の出品は購入できません。", true);
 
@@ -23,9 +25,7 @@ function buy(listing) {
       true,
     );
   }
-  if (!confirm(`${listing.name}（${billingLabel(listing.billing)}）を ${priceText(listing)} で購入しますか？\n※デモのため、実際の決済は行われません。`)) {
-    return;
-  }
+  if (!(await askCheckout(listing))) return;
 
   let tool = state.tools.find((item) => item.name === listing.name);
   if (!tool) {
@@ -70,14 +70,22 @@ function toggleListing(listing) {
 }
 
 // 月額ライセンスの解約・再開（管理者でなくてもいつでもできる）
-function toggleLicense(license) {
+async function toggleLicense(license) {
   if (license.billing !== "monthly") return;
 
   if (license.status === "active") {
     if (usedCount(license.id) > 0) {
       return notify("割り当て中のため解約できません。先に返却してください。", true);
     }
-    if (!confirm(`${license.name}を解約しますか？`)) return;
+    const confirmed = await askConfirm({
+      title: "月額ライセンスの解約",
+      message: `${license.name} を解約しますか？あとから再開できます。\n※設定されている次の更新日までライセンスは継続します。`,
+      okLabel: "解約する",
+      danger: true,
+    });
+
+    if (!confirmed) return;
+
     license.status = "inactive";
     license.renewal = "";
     addLog("解約", license.name);
