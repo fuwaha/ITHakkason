@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* PassHub: スタイルの入口。読み込み順がそのまま適用順になる（responsive は必ず最後） */
 @import url("css/base.css");
 @import url("css/buttons.css");
@@ -10,6 +11,7 @@
 @import url("css/market.css");
 @import url("css/checkout.css");
 @import url("css/responsive.css");
+=======
 :root {
   font-family: "Segoe UI", "Yu Gothic", sans-serif;
   color: #20324a;
@@ -494,3 +496,4 @@ dialog::backdrop {
 .file-button {
   display: inline-block;
 }
+>>>>>>> miyakou231
