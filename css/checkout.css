@@ -1,18 +1,20 @@
-/* 決済画面と確認ウィンドウ */
+/* 決済画面（ログイン画面と同じ入館パスのカード）と確認ウィンドウ */
 .confirm-message {
   margin: 0;
-  color: #45576b;
+  color: var(--color-text-muted);
   font-size: 14px;
   white-space: pre-line;
 }
 .primary-button.is-danger {
-  background: #b33d3d;
+  background: var(--color-danger-solid);
+  color: #fff;
 }
 .primary-button.is-danger:hover {
-  background: #8e2424;
+  background: var(--color-danger-hover);
+  color: var(--color-on-primary);
 }
 .checkout-card {
-  width: min(460px, calc(100% - 32px));
+  width: min(460px, 100%);
 }
 .checkout-summary {
   display: grid;
@@ -26,7 +28,7 @@
   font-size: 14px;
 }
 .checkout-row dt {
-  color: #738397;
+  color: var(--color-text-muted);
 }
 .checkout-row dd {
   margin: 0;
@@ -39,7 +41,7 @@
   align-items: baseline;
   margin: 16px 0 0;
   padding-top: 14px;
-  border-top: 1px solid #edf1f5;
+  border-top: 1px solid var(--color-border-soft);
   font-size: 14px;
 }
 .checkout-total strong {

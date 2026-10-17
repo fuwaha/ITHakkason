@@ -1,5 +1,6 @@
-<dialog id="formDialog">
-  <form method="dialog" id="entityForm">
+<!-- 登録・編集・返却のフォーム -->
+<dialog id="formDialog" class="form-dialog" aria-labelledby="dialogTitle">
+  <form id="entityForm" novalidate>
     <div class="dialog-heading">
       <h2 id="dialogTitle"></h2>
       <button id="closeFormButton" class="close-button" type="button" aria-label="閉じる">×</button>
@@ -8,7 +9,23 @@
     <p id="formError" class="form-error dialog-error" role="alert" hidden></p>
     <div class="dialog-actions">
       <button id="cancelFormButton" class="secondary-button" type="button">キャンセル</button>
-      <button class="primary-button" id="saveButton" value="default" type="submit">保存</button>
+      <button class="primary-button" id="saveButton" type="submit">保存</button>
     </div>
   </form>
+</dialog>
+
+<!-- 詳細（名前を押すと開く） -->
+<dialog id="detailDialog" class="detail-dialog" aria-labelledby="detailTitle">
+  <div class="dialog-heading">
+    <div>
+      <p class="detail-kind" id="detailKind"></p>
+      <h2 id="detailTitle"></h2>
+    </div>
+    <button class="close-button" type="button" data-close-detail aria-label="閉じる">×</button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+  <div class="dialog-actions">
+    <button class="secondary-button" type="button" data-close-detail>閉じる</button>
+    <button class="primary-button admin-only" type="button" id="detailEdit">編集する</button>
+  </div>
 </dialog>

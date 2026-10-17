@@ -1,0 +1,30 @@
+<section id="accounts" class="view">
+  <div class="page-heading">
+    <div>
+      <h1>アカウント管理</h1>
+      <p>PassHub にログインする人と、その権限を管理します。名前を押すと詳細が開きます。</p>
+    </div>
+    <div class="heading-actions">
+      <button class="primary-button admin-only" data-open-form="account" type="button">＋ アカウントを追加</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <input class="search" id="accountSearch" type="search" placeholder="名前・メールアドレスで検索" aria-label="アカウントを検索">
+    <span id="accountCount" class="result-count" aria-live="polite"></span>
+  </div>
+  <div class="panel table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>名前</th>
+          <th>メールアドレス</th>
+          <th>権限</th>
+          <th>最終ログイン</th>
+          <th>状態</th>
+          <th><span class="visually-hidden">操作</span></th>
+        </tr>
+      </thead>
+      <tbody id="accountsTable"></tbody>
+    </table>
+  </div>
+</section>

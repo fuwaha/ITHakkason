@@ -1,56 +1,98 @@
 /* ボタン・リンク風ボタン */
 .icon-button,
 .nav-item,
-.text-button {
+.text-button,
+.link-button {
   border: 0;
   background: none;
   cursor: pointer;
   font: inherit;
 }
 .icon-button {
-  color: #fff;
+  color: var(--color-text);
 }
 .primary-button,
 .secondary-button {
-  border: 0;
-  border-radius: 7px;
-  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s;
 }
 .primary-button {
-  background: #176bad;
-  color: #fff;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
-.primary-button:hover {
-  background: #12598e;
+.primary-button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 .secondary-button {
-  background: #edf1f5;
-  color: #45576b;
+  border: 1px solid var(--color-border-input);
+  background: var(--color-secondary-bg);
+  color: var(--color-secondary-text);
+}
+.secondary-button:hover:not(:disabled) {
+  background: var(--color-secondary-bg-hover);
 }
 .text-button {
-  color: #176bad;
+  color: var(--color-link);
   font-size: 13px;
+  font-weight: 500;
 }
 .link-button {
-  border: 0;
-  background: none;
-  color: #176bad;
-  cursor: pointer;
+  color: var(--color-link);
   padding: 0;
-  font: inherit;
   font-size: 13px;
+  font-weight: 500;
+}
+.text-button:hover,
+.link-button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .danger {
-  color: #b33d3d;
+  color: var(--color-danger);
 }
 .danger:hover {
-  color: #8e2424;
+  color: var(--color-danger-hover);
 }
-.icon-button:focus-visible {
-  outline-color: #fff;
+/* 保存中など、押せない状態 */
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
-.file-button {
-  display: inline-block;
+/* 名前（押すと詳細が開く） */
+.name-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-input);
+  text-underline-offset: 4px;
+}
+.name-link:hover {
+  color: var(--color-link);
+  text-decoration-color: currentColor;
+}
+/* 外部サイトへのリンク */
+.ext-link {
+  color: var(--color-link);
+  font-size: 13px;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+.ext-link::after {
+  content: "↗";
+  margin-left: 3px;
+  font-size: 11px;
 }

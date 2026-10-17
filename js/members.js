@@ -1,11 +1,49 @@
-// 利用者管理の描画
-import { state } from "./state.js";
-import { $, badge, esc } from "./helpers.js";
+// 社員情報の描画
+import { memberAssignedCount, state } from "./state.js";
+import {
+  $,
+  badge,
+  blank,
+  cell,
+  daysUntil,
+  detailLink,
+  emptyRow,
+  esc,
+  formatDate,
+  matches,
+  memberEnd,
+  searchQuery,
+  stacked,
+} from "./helpers.js";
+import { ALERT_DAYS, EMPLOYMENT_TYPES } from "./constants.js";
+import { rowActions } from "./tools.js";
+
+// 退職・異動・契約終了のうち早い予定日：近い・過ぎていて、まだライセンスを持っていれば注意を出す
+function endCell(member) {
+  const end = memberEnd(member);
+  if (!end) return blank;
+  const days = daysUntil(end.date);
+  const holding = memberAssignedCount(member.id) > 0;
+  let note = esc(end.label);
+  if (holding && days !== null && days <= ALERT_DAYS) {
+    note = `<span class="badge ${days < 0 ? "danger" : "warning"}">要回収</span>${esc(end.label)}`;
+  } else if (days !== null && days >= 0) {
+    note = `${esc(end.label)}・あと${days}日`;
+  }
+  return stacked(formatDate(end.date), note);
+}
+
+// 雇用形態の印（正社員以外を目立たせる）
+const employmentTag = (type) =>
+  type ? `<span class="tag${type === "regular" ? "" : " tag-strong"}">${esc(EMPLOYMENT_TYPES[type] ?? type)}</span>` : blank;
 
 export function renderMembers() {
-  const query = ($("#memberSearch")?.value || "").toLowerCase();
-  const rows = state.members.filter((member) =>
-    `${member.name} ${member.email} ${member.department}`.toLowerCase().includes(query),
+  const query = searchQuery("#memberSearch");
+  const type = $("#memberType")?.value ?? "";
+  const rows = state.members.filter(
+    (member) =>
+      (!type || (member.employmentType ?? "regular") === type) &&
+      matches(query, member.name, member.email, member.number, member.department, member.position),
   );
 
   $("#memberCount").textContent = `${rows.length}件`;
@@ -14,18 +52,20 @@ export function renderMembers() {
       .map((member) =>
         [
           `<tr>`,
-          `<td><strong>${esc(member.name)}</strong></td>`,
-          `<td>${esc(member.email)}</td>`,
-          `<td>${esc(member.number)}</td>`,
-          `<td>${esc(member.department)}</td>`,
-          `<td>${state.assignments.filter((item) => item.memberId === member.id && item.status === "assigned").length}</td>`,
-          `<td>${badge(member.status)}</td>`,
-          `<td><div class="row-actions">`,
-          `<button class="link-button" data-edit="member" data-id="${member.id}">編集</button>`,
-          `<button class="link-button danger" data-delete="member" data-id="${member.id}">削除</button>`,
-          `</div></td>`,
+          cell(
+            "氏名",
+            stacked(detailLink("member", member.id, member.name), esc([member.number, member.position].filter(Boolean).join("・"))),
+            "primary",
+          ),
+          cell("部署", esc(member.department)),
+          cell("雇用形態", employmentTag(member.employmentType ?? "regular")),
+          cell("メールアドレス", esc(member.email)),
+          cell("割り当て数", `${memberAssignedCount(member.id)}件`, "num"),
+          cell("退職・契約終了", endCell(member), "nowrap"),
+          cell("ステータス", badge(member.status)),
+          rowActions("member", member.id),
           `</tr>`,
         ].join(""),
       )
-      .join("") || '<tr><td class="empty" colspan="7">該当する利用者はいません</td></tr>';
+      .join("") || emptyRow(8, query || type ? "該当する社員はいません" : "社員が登録されていません");
 }

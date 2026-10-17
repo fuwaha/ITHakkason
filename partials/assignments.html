@@ -1,13 +1,21 @@
 <section id="assignments" class="view">
   <div class="page-heading">
     <div>
-      <p class="eyebrow">ASSIGNMENTS</p>
       <h1>ライセンス割り当て</h1>
-      <p>利用者への割り当てと返却を管理します。</p>
+      <p>利用者への割り当てと返却を管理します。名前を押すと詳細が開きます。</p>
     </div>
-    <button class="primary-button" id="addAssignmentButton" type="button">
-      ＋ 割り当てを登録
-    </button>
+    <div class="heading-actions">
+      <button class="primary-button admin-only" data-open-form="assignment" type="button">＋ 割り当てを登録</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <input class="search" id="assignmentSearch" type="search" placeholder="利用者・ライセンス・割り当て者" aria-label="割り当てを検索">
+    <select class="filter" id="assignmentStatus" aria-label="状態で絞り込み">
+      <option value="">すべての状態</option>
+      <option value="assigned">割り当て中</option>
+      <option value="released">返却済み</option>
+    </select>
+    <span id="assignmentCount" class="result-count" aria-live="polite"></span>
   </div>
   <div class="panel table-wrap">
     <table>
@@ -18,7 +26,7 @@
           <th>割り当て日</th>
           <th>状態</th>
           <th>割り当て者</th>
-          <th></th>
+          <th><span class="visually-hidden">操作</span></th>
         </tr>
       </thead>
       <tbody id="assignmentsTable"></tbody>

@@ -48,6 +48,7 @@ async function buy(listing) {
     renewal: monthly ? addMonths(todayString(), 1) : "",
     status: "active",
     billing: listing.billing,
+    billingType: listing.billing, // 課金周期（monthly / one-time）。費用の列やCSVで使う
     price: listing.price,
     listingId: listing.id,
   });
@@ -86,7 +87,7 @@ async function toggleLicense(license) {
 
     if (!confirmed) return;
 
-    license.status = "inactive";
+    license.status = "cancelled";
     license.renewal = "";
     addLog("解約", license.name);
     notify("解約しました");

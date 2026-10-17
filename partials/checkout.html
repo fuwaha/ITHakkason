@@ -1,20 +1,25 @@
-<section id="checkoutScreen" class="login-screen hidden" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
-  <form id="checkoutForm" class="login-card checkout-card">
-    <p class="eyebrow">CHECKOUT</p>
-    <h1 id="checkoutTitle">購入の確認</h1>
-    <p class="login-description">内容を確認して、支払い方法を選んでください。</p>
-    <dl id="checkoutSummary" class="checkout-summary"></dl>
-    <div class="field">
-      <label for="checkoutMethod">支払い方法</label>
-      <select id="checkoutMethod">
-        <option value="card">クレジットカード</option>
-        <option value="invoice">請求書払い</option>
-        <option value="transfer">銀行振込</option>
-      </select>
+<section id="checkoutScreen" class="login-screen" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle" hidden>
+  <div class="login-card checkout-card">
+    <!-- ログイン画面と同じ、入館パスの上部 -->
+    <div class="login-band">
+      <span class="login-slot" aria-hidden="true"></span>
+      <h1 class="login-logo" id="checkoutTitle">購入の確認</h1>
     </div>
-    <p class="checkout-total">お支払い金額<strong id="checkoutTotal"></strong></p>
-    <p class="login-hint">※デモ用のダミー決済です。実際の支払いは発生しません。</p>
-    <button id="checkoutSubmit" class="primary-button login-button" type="submit">購入を確定する</button>
-    <button id="checkoutBack" class="text-button auth-toggle" type="button">戻る</button>
-  </form>
+    <form id="checkoutForm" class="login-body">
+      <p class="login-lead">内容を確認して、支払い方法を選んでください。</p>
+      <dl id="checkoutSummary" class="checkout-summary"></dl>
+      <div class="field">
+        <label for="checkoutMethod">支払い方法</label>
+        <select id="checkoutMethod">
+          <option value="card">クレジットカード</option>
+          <option value="invoice">請求書払い</option>
+          <option value="transfer">銀行振込</option>
+        </select>
+      </div>
+      <p class="checkout-total">お支払い金額<strong id="checkoutTotal"></strong></p>
+      <p class="login-hint">※デモ用のダミー決済です。実際の支払いは発生しません。</p>
+      <button id="checkoutSubmit" class="primary-button login-button" type="submit">購入を確定する</button>
+      <p class="login-switch"><button id="checkoutBack" class="link-button" type="button">戻る</button></p>
+    </form>
+  </div>
 </section>

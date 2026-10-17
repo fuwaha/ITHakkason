@@ -1,42 +1,41 @@
 <section id="members" class="view">
   <div class="page-heading">
     <div>
-      <p class="eyebrow">MEMBERS</p>
-      <h1>利用者管理</h1>
-      <p>利用者の登録情報と割り当て状況を管理します。</p>
+      <h1>社員情報</h1>
+      <p>社員の情報と、使っているライセンスを確認できます。名前を押すと詳細が開きます。</p>
     </div>
     <div class="heading-actions">
-      <button class="secondary-button" id="importButton" type="button">CSV取込</button
-      ><input id="memberImport" type="file" accept=".csv" hidden /><button
-        class="secondary-button"
-        id="exportMembersButton"
-        type="button"
-      >
-        CSV出力</button
-      ><button class="primary-button" id="addMemberButton" type="button">
-        ＋ 利用者を登録
-      </button>
+      <button class="secondary-button admin-only" id="importButton" type="button">CSV取込</button>
+      <input id="memberImport" type="file" accept=".csv,text/csv" hidden>
+      <button class="secondary-button" id="exportMembersButton" type="button">CSV出力</button>
+      <button class="primary-button admin-only" data-open-form="member" type="button">＋ 社員を登録</button>
     </div>
   </div>
   <div class="toolbar">
-    <input
-      class="search"
-      id="memberSearch"
-      type="search"
-      placeholder="氏名・メールアドレスで検索"
-    /><span id="memberCount" class="result-count"></span>
+    <input class="search" id="memberSearch" type="search" placeholder="氏名・社員番号・部署・役職" aria-label="社員を検索">
+    <select class="filter" id="memberType" aria-label="雇用形態で絞り込み">
+      <option value="">すべての雇用形態</option>
+      <option value="regular">正社員</option>
+      <option value="contract">契約社員</option>
+      <option value="dispatch">派遣社員</option>
+      <option value="part">パート・アルバイト</option>
+      <option value="outsourcing">業務委託</option>
+    </select>
+    <span id="memberCount" class="result-count" aria-live="polite"></span>
   </div>
+  <p class="toolbar-note admin-only">CSV取込は「氏名, メールアドレス, 社員番号, 部署」が必須で、「役職, 雇用形態, 入社日, 契約終了日」の列があれば一緒に読み込みます（1行目は見出し、UTF-8 / Shift_JIS 対応）。</p>
   <div class="panel table-wrap">
     <table>
       <thead>
         <tr>
           <th>氏名</th>
-          <th>メールアドレス</th>
-          <th>社員番号</th>
           <th>部署</th>
-          <th>割り当て数</th>
+          <th>雇用形態</th>
+          <th>メールアドレス</th>
+          <th class="num">割り当て数</th>
+          <th>退職・契約終了</th>
           <th>ステータス</th>
-          <th></th>
+          <th><span class="visually-hidden">操作</span></th>
         </tr>
       </thead>
       <tbody id="membersTable"></tbody>

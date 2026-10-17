@@ -1,17 +1,127 @@
 /* 基本（:root・リセット・body・フォーカス表示） */
+/* 対応ブラウザ: light-dark() を使うため Chrome/Edge 123+、Safari 17.5+、Firefox 120+ */
+/*
+  テーマ「入館パス」
+  - 濃紺（ストラップ）… サイドバー、主ボタン、使用中の席
+  - 信号イエロー     … 選択中のメニュー、パスの帯、期限が近い注意（使う場所を絞る）
+  - 青みのある紙色   … 背景
+*/
 :root {
-  font-family: "Segoe UI", "Yu Gothic", sans-serif;
-  color: #20324a;
-  background: #f4f7fb;
-  line-height: 1.5;
+  /* ベースの色（light-dark(ライト, ダーク) の順に書く） */
+  --navy: #14213d;
+  --navy-deep: #0c1529;
+  --signal: #f2c230;
+  --signal-ink: #3d2e00; /* 黄色の上に置く文字 */
+
+  --color-text: light-dark(#18213a, #e6e9f2);
+  --color-bg: light-dark(#e9edf4, #0b1222);
+  --color-surface: light-dark(#ffffff, #141d33);
+  --color-surface-alt: light-dark(#f4f6fa, #1a2440);
+  --color-primary: light-dark(var(--navy), var(--signal));
+  --color-primary-hover: light-dark(#22325a, #f7d25c);
+  --color-on-primary: light-dark(#ffffff, var(--navy-deep));
+  --color-link: light-dark(#2447a8, #9db6ff);
+  --color-border: light-dark(#d5dbe7, #263253);
+  --color-border-soft: light-dark(#e4e8f0, #1f2a47);
+  --color-border-input: light-dark(#c3cbdb, #34416a);
+  --color-secondary-bg: light-dark(#ffffff, #1a2440);
+  --color-secondary-bg-hover: light-dark(#eef1f7, #22305a);
+  --color-secondary-text: light-dark(#18213a, #d6dbea);
+  --color-text-muted: light-dark(#5a6580, #96a1bd);
+  --color-text-label: light-dark(#3c4763, #b7c0d8);
+  --color-success: light-dark(#1d6b44, #74d3a0);
+  --color-success-bg: light-dark(#e0f2e8, #143326);
+  --color-warning: light-dark(#7a5800, #f2c230);
+  --color-warning-bg: light-dark(#fdf1c7, #3a3112);
+  --color-neutral: light-dark(#56607a, #a3acc4);
+  --color-neutral-bg: light-dark(#e8ebf2, #222c48);
+  --color-danger: light-dark(#b3261e, #ff8a80);
+  --color-danger-hover: light-dark(#8c1d17, #ffb1aa);
+  --color-danger-bg: light-dark(#fbe6e4, #3d1a1c);
+  --color-danger-solid: #b3261e;
+  --color-notice-bg: var(--navy-deep);
+  --color-on-notice: #fff;
+  --color-shadow: light-dark(#14213d1f, #00000080);
+  --color-overlay: light-dark(#0c152980, #000000b3);
+
+  /* サイドバー（ライト・ダークとも濃紺） */
+  --color-sidebar-bg: light-dark(var(--navy), var(--navy-deep));
+  --color-sidebar-text: #c9d2e8;
+  --color-sidebar-muted: #8592b3;
+  --color-sidebar-hover: #1f2e52;
+  --color-sidebar-border: #24345c;
+
+  /* パスの半券（ダークでは本体より明るい紺にして、パスの形が見えるようにする） */
+  --color-pass-stub: light-dark(var(--navy), #22325c);
+
+  /* 役割ごとの別名 */
+  --color-accent: var(--color-link);
+  --color-surface-hover: var(--color-surface-alt);
+  --color-seat-used: light-dark(var(--navy), #9db6ff);
+  --color-seat-free: light-dark(#d5dbe7, #2a3758);
+
+  /* 形 */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-pass: 14px;
+
+  color-scheme: light dark;
+  font-family: "IBM Plex Sans JP", system-ui, "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  font-feature-settings: "palt" 0;
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
 }
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+/* 数字の桁がそろうように */
+.metric-value,
+td,
+.pass-seats,
+.pass-days {
+  font-variant-numeric: tabular-nums;
 }
 :focus-visible {
-  outline: 2px solid #176bad;
+  outline: 2px solid var(--color-link);
   outline-offset: 2px;
+}
+[hidden] {
+  display: none !important;
+}
+/* 画面には出さず、読み上げにだけ使うテキスト */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* 管理者以外には編集系のボタンを出さない（本当の権限チェックはサーバー側で行う） */
+body:not(.is-admin) .admin-only {
+  display: none !important;
+}
+/* 手動切り替え（js/theme.js が <html data-theme="light|dark"> を付ける。付いていなければOSの設定に従う） */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

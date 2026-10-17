@@ -1,10 +1,13 @@
 <section id="logs" class="view">
   <div class="page-heading">
     <div>
-      <p class="eyebrow">AUDIT LOG</p>
       <h1>操作履歴</h1>
       <p>登録・更新・削除などの操作を確認できます。</p>
     </div>
+  </div>
+  <div class="toolbar">
+    <input class="search" id="logSearch" type="search" placeholder="操作・対象・実行者で検索" aria-label="操作履歴を検索">
+    <span id="logCount" class="result-count" aria-live="polite"></span>
   </div>
   <div class="panel table-wrap">
     <table>
@@ -18,5 +21,8 @@
       </thead>
       <tbody id="logsTable"></tbody>
     </table>
+  </div>
+  <div class="load-more">
+    <button class="secondary-button" id="logMoreButton" type="button" hidden>さらに表示</button>
   </div>
 </section>

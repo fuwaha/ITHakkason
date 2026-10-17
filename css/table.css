@@ -1,23 +1,31 @@
 /* 検索バー・テーブル */
 .toolbar {
   display: flex;
-  gap: 15px;
+  flex-wrap: wrap;
+  gap: 10px 12px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
+.toolbar-note {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: -4px 0 14px;
 }
 .search {
-  border: 1px solid #cbd5e1;
-  border-radius: 7px;
-  padding: 11px 13px;
+  padding: 9px 12px 9px 36px;
   width: 320px;
-  font: inherit;
-  background: #fff;
+  /* 虫めがねアイコン */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%237a859f' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
 }
 .result-count {
-  color: #718096;
+  color: var(--color-text-muted);
   font-size: 13px;
+  margin-left: auto;
 }
 .table-wrap {
+  position: relative; /* 見出し内の .visually-hidden がはみ出して横スクロールを生まないように */
   overflow-x: auto;
   padding: 0;
 }
@@ -29,26 +37,117 @@ table {
 th,
 td {
   text-align: left;
-  padding: 15px 18px;
-  border-bottom: 1px solid #edf1f5;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--color-border-soft);
   font-size: 14px;
   vertical-align: middle;
 }
 th {
-  background: #f8fafc;
-  color: #627286;
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
+  border-bottom-color: var(--color-border);
 }
-tbody tr:hover {
-  background: #fafcff;
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+tbody tr:not(.empty-row):hover {
+  background: var(--color-surface-hover);
+}
+/* 数値の列は右寄せ */
+th.num,
+td.num {
+  text-align: right;
+}
+/* 名前（太字の列）は途中で改行しない */
+td strong {
+  white-space: nowrap;
+}
+.muted,
+td small.muted {
+  color: var(--color-text-muted);
+}
+td small.muted {
+  font-size: 12px;
+  margin-left: 2px;
 }
 .row-actions {
   display: flex;
-  gap: 10px;
+  gap: 14px;
+  justify-content: flex-end;
 }
-.empty {
-  text-align: center;
-  color: #8997a8;
-  padding: 30px;
+td.actions {
+  white-space: nowrap;
+}
+
+/* 1マスに「主 + 補足」を重ねる（日付と担当者 など） */
+.stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  line-height: 1.35;
+}
+.stack > small {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.stack small .badge {
+  font-size: 11px;
+}
+
+/* 操作履歴の対象：種類を小さく、名前を太く */
+.target small {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* 利用状況（ダッシュボードの席メーターを細くしたもの） */
+.usage {
+  display: grid;
+  gap: 5px;
+  min-width: 120px;
+  max-width: 180px;
+}
+.usage-text {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.usage-text strong {
+  color: var(--color-text);
+  font-size: 14px;
+}
+.usage-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-seat-free);
+  overflow: hidden;
+}
+.usage-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-seat-used);
+}
+.usage.is-full .usage-bar > span {
+  background: var(--color-danger);
+}
+td .name-link {
+  white-space: nowrap;
+}
+.stack > small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+small.unit {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-left: 1px;
+}
+td.nowrap {
+  white-space: nowrap;
 }

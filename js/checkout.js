@@ -4,7 +4,7 @@ import { billingLabel, priceText } from "./market.js";
 
 export function askCheckout(listing) {
   const screen = $("#checkoutScreen");
-  if (!screen.classList.contains("hidden")) return Promise.resolve(false); // すでに開いているとき
+  if (!screen.hidden) return Promise.resolve(false); // すでに開いているとき
 
   const row = (label, value) =>
     `<div class="checkout-row"><dt>${label}</dt><dd>${esc(value)}</dd></div>`;
@@ -14,7 +14,7 @@ export function askCheckout(listing) {
     row("出品者", listing.seller),
   ].join("");
   $("#checkoutTotal").textContent = priceText(listing);
-  screen.classList.remove("hidden");
+  screen.hidden = false;
   $("#checkoutSubmit").focus();
 
   return new Promise((resolve) => {
@@ -22,7 +22,7 @@ export function askCheckout(listing) {
       $("#checkoutForm").removeEventListener("submit", onSubmit);
       $("#checkoutBack").removeEventListener("click", onBack);
       document.removeEventListener("keydown", onKey);
-      screen.classList.add("hidden");
+      screen.hidden = true;
       resolve(result);
     };
     const onSubmit = (event) => {
