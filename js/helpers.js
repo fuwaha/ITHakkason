@@ -31,6 +31,14 @@ export const badge = (status, extra = "") =>
 
 // ローカル時間（日本時間など）での日付・日時
 export const todayString = () => new Date().toLocaleDateString("sv-SE");
+
+// 日付(YYYY-MM-DD)に n か月を足す
+export const addMonths = (date, n) => {
+  const d = new Date(`${date}T00:00:00`);
+  d.setMonth(d.getMonth() + n);
+  return d.toLocaleDateString("sv-SE");
+};
+
 export const nowString = () => new Date().toLocaleString("sv-SE").slice(0, 16);
 
 export const daysUntil = (date) =>

@@ -4,6 +4,7 @@ import { $, notify, statusLabel } from "./helpers.js";
 import { isAdmin } from "./auth.js";
 import { addLog } from "./logs.js";
 import { render } from "./render.js";
+import { billingLabel } from "./market.js";
 
 // CSVの1セル分（Excelで数式として実行されないよう先頭の記号を無効化）
 const csvCell = (value) => {
@@ -25,7 +26,7 @@ function downloadCsv(filename, headers, rows) {
 $("#exportLicensesButton").addEventListener("click", () =>
   downloadCsv(
     "licenses.csv",
-    ["ライセンス名", "対象ツール", "契約数", "利用数", "更新日", "ステータス"],
+    ["ライセンス名", "対象ツール", "契約数", "利用数", "更新日", "販売方法", "価格", "ステータス"],
     state.licenses.map((license) => [
       license.name,
       toolById(license.toolId)?.name,
@@ -34,6 +35,8 @@ $("#exportLicensesButton").addEventListener("click", () =>
         (item) => item.licenseId === license.id && item.status === "assigned",
       ).length,
       license.renewal,
+      license.billing ? billingLabel(license.billing) : "", // マーケットで購入したものだけ
+      license.price ?? "",
       statusLabel(license.status),
     ]),
   ),

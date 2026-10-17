@@ -1,0 +1,47 @@
+/* 決済画面と確認ウィンドウ */
+.confirm-message {
+  margin: 0;
+  color: #45576b;
+  font-size: 14px;
+  white-space: pre-line;
+}
+.primary-button.is-danger {
+  background: #b33d3d;
+}
+.primary-button.is-danger:hover {
+  background: #8e2424;
+}
+.checkout-card {
+  width: min(460px, calc(100% - 32px));
+}
+.checkout-summary {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.checkout-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.checkout-row dt {
+  color: #738397;
+}
+.checkout-row dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+.checkout-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #edf1f5;
+  font-size: 14px;
+}
+.checkout-total strong {
+  font-size: 22px;
+}
