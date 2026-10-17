@@ -323,6 +323,9 @@ dialog::backdrop {
   display: grid;
   gap: 6px;
 }
+.field[hidden] {
+  display: none;
+}
 .field label {
   font-size: 13px;
   font-weight: 700;
