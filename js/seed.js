@@ -2,9 +2,9 @@
 
 export const seed = {
   users: [
-    { id: 1, name: "管理者", email: "admin@example.jp", password: "demo1234", role: "admin", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
-    { id: 2, name: "山本 マネージャー", email: "manager@example.jp", password: "manager1234", role: "manager", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
-    { id: 3, name: "中村 ユーザー", email: "user@example.jp", password: "user1234", role: "user", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
+    { id: 1, name: "管理者", email: "admin@example.com", password: "demo1234", role: "admin", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
+    { id: 2, name: "山本 マネージャー", email: "manager@example.com", password: "manager1234", role: "manager", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
+    { id: 3, name: "中村 ユーザー", email: "user@example.com", password: "user1234", role: "user", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
     { id: 4, name: "不破 ユーザー", email: "fuwa@iclaude.com", password: "fuwa0405", role: "user", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
     { id: 5, name: "稲村 ユーザー", email: "inamura@Jmail.com", password: "inamura0104", role: "user", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
     { id: 6, name: "宮下 ユーザー", email: "miyashita@decomo.com", password: "miyashita0427", role: "user", status: "active", createdAt: "2026-10-01 09:00", lastLoginAt: "" },
