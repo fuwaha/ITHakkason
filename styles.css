@@ -1,6 +1,6 @@
 /* PassHub: スタイルの入口。読み込み順がそのまま適用順になる（responsive は必ず最後） */
 @import url("css/base.css");
-@import url("css/buttons.css");
+@import url("css/buttons.css?v=2");
 @import url("css/layout.css");
 @import url("css/components.css");
 @import url("css/table.css");
