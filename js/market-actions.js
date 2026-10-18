@@ -72,7 +72,7 @@ function toggleListing(listing) {
 
 // 月額ライセンスの解約・再開（管理者でなくてもいつでもできる）
 async function toggleLicense(license) {
-  if (license.billing !== "monthly") return;
+  if ((license.billing ?? license.billingType) !== "monthly") return;
 
   if (license.status === "active") {
     if (usedCount(license.id) > 0) {
@@ -80,7 +80,7 @@ async function toggleLicense(license) {
     }
     const confirmed = await askConfirm({
       title: "月額ライセンスの解約",
-      message: `${license.name} を解約しますか？あとから再開できます。\n※設定されている次の更新日までライセンスは継続します。`,
+      message: `${license.name} を解約しますか？解約するとすぐに「解約済み」になり、次の更新日も消えます。あとから再開できます。`,
       okLabel: "解約する",
       danger: true,
     });

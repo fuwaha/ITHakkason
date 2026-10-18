@@ -151,3 +151,12 @@ small.unit {
 td.nowrap {
   white-space: nowrap;
 }
+
+/* ライセンス管理は操作が3つ並ぶので、入りきらないときは折り返す */
+#licensesTable td.actions {
+  white-space: normal;
+}
+#licensesTable .row-actions {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}

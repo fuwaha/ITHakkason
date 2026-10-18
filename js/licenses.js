@@ -72,7 +72,7 @@ export function renderLicenses() {
             "操作",
             [
               `<div class="row-actions">`,
-              license.billing === "monthly"
+              (license.billing ?? license.billingType) === "monthly"
                 ? `<button type="button" class="link-button${license.status === "active" ? " danger" : ""}" data-license-toggle="${license.id}">${license.status === "active" ? "解約" : "再開"}</button>`
                 : "",
               `<button type="button" class="link-button admin-only" data-edit="license" data-id="${license.id}">編集</button>`,

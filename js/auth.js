@@ -67,7 +67,8 @@ $("#loginForm").addEventListener("submit", (event) => {
   const email = $("#loginEmail").value.trim().toLowerCase();
   const password = $("#loginPassword").value;
 
-  // アカウント登録（users に追加するだけ。見かけ用のデモ）
+  // アカウント登録（今は画面だけで保存しない。誰でもアカウントを作れてしまうため。
+  // API ができたら「申請 → 管理者が承認」の流れにする）
   if (authMode === "register") {
     const name = $("#loginName")?.value.trim() ?? "";
     if (!name) return notify("氏名を入力してください。", true);
@@ -75,20 +76,9 @@ $("#loginForm").addEventListener("submit", (event) => {
     if (state.users.some((item) => item.email === email)) {
       return notify("このメールアドレスは既に登録されています。", true);
     }
-    state.users.push({
-      id: nextId(state.users),
-      name,
-      email,
-      password,
-      role: "user",
-      status: "active",
-      createdAt: nowString(),
-      lastLoginAt: "",
-    });
-    save();
     $("#loginPassword").value = "";
     setAuthMode("login");
-    return notify("アカウントを登録しました。ログインしてください。");
+    return notify("アカウント登録は準備中です。アカウントが必要な場合は、管理者に作成を依頼してください。");
   }
 
   // ログイン（users からメールアドレスで探してパスワードを照合）
@@ -119,6 +109,9 @@ $("#loginForm").addEventListener("submit", (event) => {
     expired,
   );
 });
+
+// 初期管理者のヒントは、開発環境（localhost）でだけ表示する
+$("#loginHint")?.toggleAttribute("hidden", !["localhost", "127.0.0.1"].includes(location.hostname));
 
 $("#registerToggle").addEventListener("click", () =>
   setAuthMode(authMode === "login" ? "register" : "login"),
