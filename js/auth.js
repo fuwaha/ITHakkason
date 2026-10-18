@@ -77,9 +77,21 @@ function showLoginError(message) {
 }
 
 // ログイン画面とアカウント登録を切り替える（同じフォームの表示を変えるだけ）
+// 新規登録だけで使う欄（氏名・確認用パスワード）は、ログインのときはページから外しておく。
+// 隠しているだけだと、Edge などが「新規登録のフォーム」と判断して、ログイン画面でも強力なパスワードを提案してしまうため
+const confirmField = $("#loginConfirmField");
+const confirmInput = $("#loginConfirm");
+const registerOnly = [$("#loginNameField"), confirmField].map((field) => {
+  const mark = document.createComment(field.id); // 戻す場所の目印
+  field.before(mark);
+  field.remove();
+  return { field, mark };
+});
+
 export function setAuthMode(mode) {
   authMode = mode;
   const registering = mode === "register";
+  registerOnly.forEach(({ field, mark }) => (registering ? mark.after(field) : field.remove()));
   // HTML側に要素が無くてもエラーで止まらないように ?. を付けている
   $("#authTitle")?.replaceChildren(registering ? "アカウント登録" : "ログイン");
   $("#authDescription")?.replaceChildren(
@@ -95,8 +107,8 @@ export function setAuthMode(mode) {
   $("#loginForm .login-button").textContent = registering ? "アカウントを登録" : "ログイン";
   $("#registerToggle")?.replaceChildren(registering ? "ログイン画面に戻る" : "新しいアカウントを登録する");
   // 確認用のパスワードは登録のときだけ、保存と忘れた場合の案内はログインのときだけ出す
-  $("#loginConfirmField").hidden = !registering;
-  $("#loginConfirm").value = "";
+  confirmField.hidden = !registering;
+  confirmInput.value = "";
   $("#rememberField").hidden = registering;
   $("#forgotPassword").hidden = registering;
   $("#passwordRules").hidden = !registering;
@@ -105,8 +117,8 @@ export function setAuthMode(mode) {
   $("#loginPassword").value = "";
   if ($("#loginName")) $("#loginName").value = "";
   // パスワードの表示は「隠す」状態に戻す
-  document.querySelectorAll(".password-toggle").forEach((button) => {
-    document.getElementById(button.getAttribute("aria-controls")).type = "password";
+  [...document.querySelectorAll(".password-toggle"), confirmField.querySelector(".password-toggle")].forEach((button) => {
+    button.closest(".password-wrap").querySelector("input").type = "password";
     button.textContent = "表示";
     button.setAttribute("aria-pressed", "false");
   });
@@ -115,12 +127,13 @@ export function setAuthMode(mode) {
 }
 
 // 確認用のパスワードは、先にパスワードを入れるまで入力できないようにする
+// （ログインのときは常に使えないままにする。使える状態だとブラウザが「新規登録の画面」と判断することがあるため）
 function updateConfirmField() {
-  const ready = $("#loginPassword").value !== "";
-  const confirm = $("#loginConfirm");
+  const ready = authMode === "register" && $("#loginPassword").value !== "";
+  const confirm = confirmInput;
   confirm.disabled = !ready;
   confirm.placeholder = ready ? "" : "先にパスワードを入力してください";
-  $("#loginConfirmField .password-toggle").disabled = !ready;
+  confirmField.querySelector(".password-toggle").disabled = !ready;
   if (!ready) confirm.value = "";
   // 条件を満たしたものに印を付ける
   const value = $("#loginPassword").value;
@@ -129,6 +142,14 @@ function updateConfirmField() {
   });
 }
 $("#loginPassword").addEventListener("input", updateConfirmField);
+
+// ブラウザの「強力なパスワードの提案」を選ぶと、入力中の欄では文字が見えたままになる。
+// 提案（自動入力）で入ったときは確認用の欄へ移って、パスワードを隠した状態にする。
+// キーボードで打ったときは inputType が "insertText" などになるので、ここでは何もしない
+$("#loginPassword").addEventListener("input", (event) => {
+  if (authMode !== "register" || !$("#loginPassword").value) return;
+  if (event.inputType === undefined || event.inputType === "insertReplacementText") confirmInput.focus();
+});
 
 $("#loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -142,15 +163,9 @@ $("#loginForm").addEventListener("submit", async (event) => {
     if (!Object.values(PASSWORD_RULES).every((rule) => rule(password))) {
       return showLoginError("パスワードは8文字以上で、英字と数字を両方含めてください。");
     }
-    if (password !== $("#loginConfirm").value) return showLoginError("確認用のパスワードが一致しません。");
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    });
-    if (error) {
-      return showLoginError(`アカウント登録に失敗しました: ${error.message}`);
+    if (password !== confirmInput.value) return showLoginError("確認用のパスワードが一致しません。");
+    if (state.users.some((item) => item.email === email)) {
+      return showLoginError("このメールアドレスはすでに登録されています。");
     }
 
     $("#loginPassword").value = "";
@@ -201,9 +216,10 @@ $("#loginForm").addEventListener("submit", async (event) => {
 });
 
 // パスワードの表示／非表示
-document.querySelectorAll(".password-toggle").forEach((button) =>
+// （確認用の欄はこの時点でページから外れているので、別に指定する）
+[...document.querySelectorAll(".password-toggle"), confirmField.querySelector(".password-toggle")].forEach((button) =>
   button.addEventListener("click", () => {
-    const input = document.getElementById(button.getAttribute("aria-controls"));
+    const input = button.closest(".password-wrap").querySelector("input");
     const show = input.type === "password";
     input.type = show ? "text" : "password";
     button.textContent = show ? "隠す" : "表示";
