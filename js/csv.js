@@ -143,7 +143,7 @@ function decodeCsv(buffer) {
 const COLUMN_NAMES = {
   name: ["氏名", "名前", "name"],
   email: ["メールアドレス", "メール", "email", "e-mail"],
-  number: ["社員番号", "従業員番号", "number", "member_number"],
+  number: ["社員番号", "利用者番号", "従業員番号", "number", "member_number"],
   department: ["部署", "所属", "department"],
 };
 // あれば読み込む列（無くても取り込める）
@@ -237,7 +237,7 @@ $("#memberImport").addEventListener("change", async (event) => {
 
     const { added, skipped } = importMembers(rows);
     if (added > 0) {
-      addLog("CSV取込", `社員: ${added}件`);
+      addLog("CSV取込", `利用者: ${added}件`);
       save();
       render();
     }

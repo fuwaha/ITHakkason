@@ -20,8 +20,8 @@ async function buy(listing) {
   if (owned) {
     return notify(
       owned.status === "active"
-        ? "すでに契約中（購入済み）です。"
-        : "解約済みの契約があります。ライセンス管理から再開できます。",
+        ? (listing.billing === "monthly" ? "すでに契約中です。" : "すでに購入済みです。")
+        : "この商品は解約済みです。「ライセンス管理」から再開できます。",
       true,
     );
   }

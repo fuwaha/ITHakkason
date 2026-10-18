@@ -1,11 +1,11 @@
 // ログイン・アカウント登録・ログアウト（権限や有効・無効の切り替えは「アカウント管理」で行う）
-// ※ 現在はブラウザ内（localStorage）だけで完結する仮の認証。
-//   API ができたら、ログイン・登録・ログアウトはサーバーに問い合わせる形に差し替える。
+// ※ ログイン・登録・ログアウトは Supabase の認証（supabase.auth）に問い合わせる。
 import { $, daysUntil, esc, notify } from "./helpers.js";
 import { ROLE_LABELS } from "./constants.js";
 import { supabase } from "./supabase.js";
 import { state } from "./state.js";
 
+const EMAIL_KEY = "passhubSavedEmail"; // 「メールアドレスを保存する」で覚えておくメールアドレス
 let authMode = "login";
 let authenticatedUser = null;
 
@@ -29,6 +29,23 @@ export async function initializeAuth() {
 }
 
 export const currentUser = () => authenticatedUser;
+
+// 新規登録のパスワードの条件（画面の一覧と、登録するときのチェックで使う）
+const PASSWORD_RULES = {
+  length: (value) => value.length >= 8,
+  letter: (value) => /[A-Za-z]/.test(value),
+  number: (value) => /[0-9]/.test(value),
+};
+
+// 保存してあるメールアドレス（無ければ空）
+const savedEmail = () => {
+  try {
+    return localStorage.getItem(EMAIL_KEY) ?? "";
+  } catch {
+    return "";
+  }
+};
+
 export const isAdmin = () => currentUser()?.role === "admin";
 
 export function updateAuthView() {
@@ -66,15 +83,52 @@ export function setAuthMode(mode) {
   // HTML側に要素が無くてもエラーで止まらないように ?. を付けている
   $("#authTitle")?.replaceChildren(registering ? "アカウント登録" : "ログイン");
   $("#authDescription")?.replaceChildren(
-    registering ? "usersテーブルに新しいアカウントを登録します。" : "登録済みのアカウントでログインしてください。",
+    registering ? "必要な項目を入力してください。" : "登録済みのアカウントでログインしてください。",
   );
   if ($("#loginNameField")) $("#loginNameField").hidden = !registering;
   if ($("#loginName")) $("#loginName").required = registering;
-  $("#loginPassword").autocomplete = registering ? "new-password" : "current-password";
+  // ブラウザ（Edge など）は、ページを開いたときの autocomplete を見て「強力なパスワードの提案」を出す欄を決める。
+  // 切り替えたあとに欄を入れ直して、ブラウザにもう一度読み直してもらう
+  const passwordInput = $("#loginPassword");
+  passwordInput.setAttribute("autocomplete", registering ? "new-password" : "current-password");
+  passwordInput.parentElement.prepend(passwordInput);
   $("#loginForm .login-button").textContent = registering ? "アカウントを登録" : "ログイン";
   $("#registerToggle")?.replaceChildren(registering ? "ログイン画面に戻る" : "新しいアカウントを登録する");
+  // 確認用のパスワードは登録のときだけ、保存と忘れた場合の案内はログインのときだけ出す
+  $("#loginConfirmField").hidden = !registering;
+  $("#loginConfirm").value = "";
+  $("#rememberField").hidden = registering;
+  $("#forgotPassword").hidden = registering;
+  $("#passwordRules").hidden = !registering;
+  // 入力は引き継がない（ログインに戻るときは、保存したメールアドレスだけ入れ直す）
+  $("#loginEmail").value = registering ? "" : savedEmail();
+  $("#loginPassword").value = "";
+  if ($("#loginName")) $("#loginName").value = "";
+  // パスワードの表示は「隠す」状態に戻す
+  document.querySelectorAll(".password-toggle").forEach((button) => {
+    document.getElementById(button.getAttribute("aria-controls")).type = "password";
+    button.textContent = "表示";
+    button.setAttribute("aria-pressed", "false");
+  });
+  updateConfirmField();
   showLoginError("");
 }
+
+// 確認用のパスワードは、先にパスワードを入れるまで入力できないようにする
+function updateConfirmField() {
+  const ready = $("#loginPassword").value !== "";
+  const confirm = $("#loginConfirm");
+  confirm.disabled = !ready;
+  confirm.placeholder = ready ? "" : "先にパスワードを入力してください";
+  $("#loginConfirmField .password-toggle").disabled = !ready;
+  if (!ready) confirm.value = "";
+  // 条件を満たしたものに印を付ける
+  const value = $("#loginPassword").value;
+  document.querySelectorAll("#passwordRules [data-rule]").forEach((item) => {
+    item.classList.toggle("is-ok", PASSWORD_RULES[item.dataset.rule](value));
+  });
+}
+$("#loginPassword").addEventListener("input", updateConfirmField);
 
 $("#loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -84,8 +138,11 @@ $("#loginForm").addEventListener("submit", async (event) => {
 
   if (authMode === "register") {
     const name = $("#loginName")?.value.trim() ?? "";
-    if (!name) return notify("氏名を入力してください。", true);
-    if (password.length < 8) return notify("パスワードは8文字以上で入力してください。", true);
+    if (!name) return showLoginError("氏名を入力してください。");
+    if (!Object.values(PASSWORD_RULES).every((rule) => rule(password))) {
+      return showLoginError("パスワードは8文字以上で、英字と数字を両方含めてください。");
+    }
+    if (password !== $("#loginConfirm").value) return showLoginError("確認用のパスワードが一致しません。");
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -93,7 +150,7 @@ $("#loginForm").addEventListener("submit", async (event) => {
       options: { data: { name } },
     });
     if (error) {
-      return notify(`アカウント登録に失敗しました: ${error.message}`, true);
+      return showLoginError(`アカウント登録に失敗しました: ${error.message}`);
     }
 
     $("#loginPassword").value = "";
@@ -115,6 +172,12 @@ $("#loginForm").addEventListener("submit", async (event) => {
     return showLoginError("ユーザー情報を取得できませんでした。");
   }
 
+  // ログインできたときだけメールアドレスを保存する（チェックを外していたら消す）
+  try {
+    if ($("#rememberEmail").checked) localStorage.setItem(EMAIL_KEY, email);
+    else localStorage.removeItem(EMAIL_KEY);
+  } catch {}
+
   authenticatedUser = {
     ...profile,
     email: data.user.email,
@@ -131,11 +194,40 @@ $("#loginForm").addEventListener("submit", async (event) => {
   );
   notify(
     expired
-      ? `${authenticatedUser.name} としてログインしました。更新期限を過ぎたライセンスがあります。確認してください。`
-      : `${authenticatedUser.name} としてログインしました`,
+      ? `${authenticatedUser.name}さんとしてログインしました。更新期限を過ぎたライセンスがあります。確認してください。`
+      : `${authenticatedUser.name}さんとしてログインしました`,
     expired,
   );
 });
+
+// パスワードの表示／非表示
+document.querySelectorAll(".password-toggle").forEach((button) =>
+  button.addEventListener("click", () => {
+    const input = document.getElementById(button.getAttribute("aria-controls"));
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    button.textContent = show ? "隠す" : "表示";
+    button.setAttribute("aria-pressed", String(show));
+    input.focus();
+  }),
+);
+
+// Caps Lock がオンのときに警告を出す
+const updateCapsLock = (event) => {
+  if (typeof event.getModifierState !== "function") return;
+  $("#capsLockWarning").hidden = !event.getModifierState("CapsLock");
+};
+$("#loginPassword").addEventListener("keydown", updateCapsLock);
+$("#loginPassword").addEventListener("keyup", updateCapsLock);
+
+// 前回保存したメールアドレスを入れておく
+try {
+  const saved = localStorage.getItem(EMAIL_KEY);
+  if (saved) {
+    $("#loginEmail").value = saved;
+    $("#rememberEmail").checked = true;
+  }
+} catch {}
 
 // 初期管理者のヒントは、開発環境（localhost）でだけ表示する
 $("#loginHint")?.toggleAttribute("hidden", !["localhost", "127.0.0.1"].includes(location.hostname));

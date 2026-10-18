@@ -1,4 +1,4 @@
-// 社員情報の描画
+// 利用者情報の描画
 import { memberAssignedCount, state } from "./state.js";
 import {
   $,
@@ -67,5 +67,5 @@ export function renderMembers() {
           `</tr>`,
         ].join(""),
       )
-      .join("") || emptyRow(8, query || type ? "該当する社員はいません" : "社員が登録されていません");
+      .join("") || emptyRow(8, query || type ? "該当する利用者はいません" : "利用者が登録されていません");
 }

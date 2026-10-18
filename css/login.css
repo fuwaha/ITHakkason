@@ -202,3 +202,52 @@
   accent-color: var(--color-link);
   cursor: pointer;
 }
+
+/* 先にパスワードを入れるまで、確認用の欄は押せない見た目にする */
+.password-wrap input:disabled {
+  background-color: var(--color-surface-alt);
+  cursor: not-allowed;
+}
+.password-wrap input:disabled::placeholder {
+  color: var(--color-text-muted);
+}
+.password-toggle:disabled {
+  visibility: hidden;
+}
+
+/* 新規登録のパスワードの条件（満たすと緑のチェック） */
+.password-rules {
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.password-rules li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.password-rules li::before {
+  content: "";
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--color-border-input);
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+}
+.password-rules li.is-ok {
+  color: var(--color-success);
+}
+.password-rules li.is-ok::before {
+  content: "✓";
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: var(--color-surface);
+}

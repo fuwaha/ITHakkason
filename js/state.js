@@ -275,7 +275,7 @@ export const licenseById = (id) => state.licenses.find((license) => license.id =
 export const memberById = (id) => state.members.find((member) => member.id === Number(id));
 export const userById = (id) => state.users.find((user) => user.id === Number(id));
 
-// 割り当て中の数（ライセンス単位・社員単位）。数える処理はここにまとめる
+// 割り当て中の数（ライセンス単位・利用者単位）。数える処理はここにまとめる
 export const usedCount = (licenseId) =>
   state.assignments.filter(
     (item) => item.licenseId === Number(licenseId) && item.status === "assigned",

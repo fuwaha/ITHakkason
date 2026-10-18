@@ -22,6 +22,10 @@ import { accountChangeProblem } from "./accounts.js";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_PATTERN = /^https?:\/\/\S+$/i;
 const PASSWORD_MIN = 8;
+// パスワードの条件（ログイン画面の新規登録と同じ：8文字以上・英字と数字を両方含む）
+const strongPassword = (value) => value.length >= PASSWORD_MIN && /[A-Za-z]/.test(value) && /[0-9]/.test(value);
+const PASSWORD_HINT = `${PASSWORD_MIN}文字以上・英字と数字を両方含む`;
+const PASSWORD_ERROR = `パスワードは${PASSWORD_MIN}文字以上で、英字と数字を両方含めてください。`;
 
 let formContext = null;
 
@@ -37,7 +41,7 @@ function validateAssignment(memberId, licenseId) {
   const license = licenseById(licenseId);
   const member = memberById(memberId);
 
-  if (!member || member.status !== "active") return error("在籍中の社員を選択してください。", "memberId");
+  if (!member || member.status !== "active") return error("在籍中の利用者を選択してください。", "memberId");
   if (!license || license.status !== "active") return error("有効なライセンスを選択してください。", "licenseId");
   if (!isAssignable(license)) return error("更新期限を過ぎたライセンスは割り当てできません。", "licenseId");
   if (
@@ -46,7 +50,7 @@ function validateAssignment(memberId, licenseId) {
         item.memberId === memberId && item.licenseId === licenseId && item.status === "assigned",
     )
   ) {
-    return error("この社員には同じライセンスが既に割り当てられています。", "licenseId");
+    return error("この利用者には同じライセンスが既に割り当てられています。", "licenseId");
   }
   if (usedCount(licenseId) >= license.quantity) {
     return error("利用可能なライセンス数を超えているため、割り当てできません。", "licenseId");
@@ -65,7 +69,7 @@ const statusOptions = (type) => STATUS_OPTIONS[type].map((value) => ({ value, la
 
 const roleOptions = () => Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }));
 
-// 社員が使っている割り当て（まとめて返却で使う）
+// 利用者が使っている割り当て（まとめて返却で使う）
 const activeAssignmentsOf = (memberId) =>
   state.assignments.filter((assignment) => assignment.memberId === memberId && assignment.status === "assigned");
 
@@ -96,7 +100,7 @@ function schema(type, item, preset = null) {
         required: true,
         raw: true,
         attrs: 'autocomplete="new-password"',
-        hint: `${PASSWORD_MIN}文字以上。本人に伝えたら、ログイン後に変えてもらってください`,
+        hint: `${PASSWORD_HINT}。本人に伝えたら、ログイン後に変えてもらってください`,
       });
     }
     return [{ title: "アカウント", fields }];
@@ -121,7 +125,7 @@ function schema(type, item, preset = null) {
         title: "パスワード変更",
         fields: [
           { name: "currentPassword", label: "今のパスワード", type: "password", required: true, raw: true, wide: true, attrs: 'autocomplete="current-password"' },
-          { name: "password", label: "新しいパスワード", type: "password", required: true, raw: true, attrs: 'autocomplete="new-password"', hint: `${PASSWORD_MIN}文字以上` },
+          { name: "password", label: "新しいパスワード", type: "password", required: true, raw: true, attrs: 'autocomplete="new-password"', hint: PASSWORD_HINT },
           { name: "passwordConfirm", label: "確認のためもう一度", type: "password", required: true, raw: true, attrs: 'autocomplete="new-password"' },
         ],
       },
@@ -134,7 +138,7 @@ function schema(type, item, preset = null) {
         title: "パスワード再設定",
         fields: [
           { type: "info", wide: true, html: summary([["名前", item.name], ["メールアドレス", item.email]]) },
-          { name: "password", label: "新しいパスワード", type: "password", required: true, raw: true, attrs: 'autocomplete="new-password"', hint: `${PASSWORD_MIN}文字以上` },
+          { name: "password", label: "新しいパスワード", type: "password", required: true, raw: true, attrs: 'autocomplete="new-password"', hint: PASSWORD_HINT },
           { name: "passwordConfirm", label: "確認のためもう一度", type: "password", required: true, raw: true, attrs: 'autocomplete="new-password"' },
         ],
       },
@@ -150,7 +154,7 @@ function schema(type, item, preset = null) {
       {
         title: "まとめて返却",
         fields: [
-          { type: "info", wide: true, html: summary([["社員", item.name], ...list]) },
+          { type: "info", wide: true, html: summary([["利用者", item.name], ...list]) },
           { name: "releasedAt", label: "返却日", type: "date", required: true, default: todayString() },
           {
             name: "releaseReason",
@@ -291,7 +295,7 @@ function schema(type, item, preset = null) {
   }
 
   if (type === "member") {
-    // 上長は自分以外の在籍中の社員から選ぶ
+    // 上長は自分以外の在籍中の利用者から選ぶ
     const managers = state.members
       .filter((member) => member.id !== item?.id && (member.status === "active" || member.id === item?.managerId))
       .map((member) => ({ value: member.id, label: `${member.name}（${member.department ?? ""}）` }));
@@ -327,7 +331,7 @@ function schema(type, item, preset = null) {
   }
 
   if (type === "assignment" && item) {
-    // 編集では社員とライセンスは変えられない（変えるときは返却して登録し直す）
+    // 編集では利用者とライセンスは変えられない（変えるときは返却して登録し直す）
     return [
       {
         title: "割り当て",
@@ -336,7 +340,7 @@ function schema(type, item, preset = null) {
             type: "info",
             wide: true,
             html: summary([
-              ["社員", memberById(item.memberId)?.name ?? "（削除済み）"],
+              ["利用者", memberById(item.memberId)?.name ?? "（削除済み）"],
               ["ライセンス", licenseById(item.licenseId)?.name ?? "（削除済み）"],
               ["割り当て日", formatDate(item.assignedAt)],
             ]),
@@ -356,7 +360,7 @@ function schema(type, item, preset = null) {
   }
 
   if (type === "assignment") {
-    // 詳細から開いたときは、社員かライセンスが決まっている。すでに持っている組み合わせは選択肢から外す
+    // 詳細から開いたときは、利用者かライセンスが決まっている。すでに持っている組み合わせは選択肢から外す
     const holds = (memberId, licenseId) =>
       state.assignments.some(
         (assignment) => assignment.memberId === memberId && assignment.licenseId === licenseId && assignment.status === "assigned",
@@ -376,7 +380,7 @@ function schema(type, item, preset = null) {
       {
         title: "割り当て",
         fields: [
-          { name: "memberId", label: "社員", type: "select", required: true, numeric: true, wide: true, options: members },
+          { name: "memberId", label: "利用者", type: "select", required: true, numeric: true, wide: true, options: members },
           { name: "licenseId", label: "ライセンス", type: "select", required: true, numeric: true, wide: true, options: licenses },
           { name: "assignedAt", label: "割り当て日", type: "date", required: true, default: todayString() },
         ],
@@ -401,7 +405,7 @@ function schema(type, item, preset = null) {
             type: "info",
             wide: true,
             html: summary([
-              ["社員", memberById(item.memberId)?.name ?? "（削除済み）"],
+              ["利用者", memberById(item.memberId)?.name ?? "（削除済み）"],
               ["ライセンス", licenseById(item.licenseId)?.name ?? "（削除済み）"],
               ["割り当て日", formatDate(item.assignedAt)],
             ]),
@@ -543,8 +547,8 @@ function validateRules(type, id, data, item) {
   if (type === "account") {
     const duplicated = state.users.some((user) => user.id !== id && user.email.toLowerCase() === data.email);
     if (duplicated) return error("このメールアドレスのアカウントは既にあります。", "email");
-    if (!id && data.password.length < PASSWORD_MIN) {
-      return error(`パスワードは${PASSWORD_MIN}文字以上にしてください。`, "password");
+    if (!id && !strongPassword(data.password)) {
+      return error(PASSWORD_ERROR, "password");
     }
     if (id) {
       const problem = accountChangeProblem(item, data.role, data.status);
@@ -563,7 +567,7 @@ function validateRules(type, id, data, item) {
   }
 
   if (type === "password" || type === "changePassword") {
-    if (data.password.length < PASSWORD_MIN) return error(`パスワードは${PASSWORD_MIN}文字以上にしてください。`, "password");
+    if (!strongPassword(data.password)) return error(PASSWORD_ERROR, "password");
     if (data.password !== data.passwordConfirm) return error("確認用のパスワードが一致しません。", "passwordConfirm");
   }
 
@@ -600,7 +604,7 @@ function validateRules(type, id, data, item) {
         member.id !== id &&
         (member.email.toLowerCase() === data.email || member.number === data.number),
     );
-    if (duplicated) return error("同じメールアドレスまたは社員番号の社員が既に登録されています。", "email");
+    if (duplicated) return error("同じメールアドレスまたは社員番号の利用者が既に登録されています。", "email");
     if (data.hireDate && data.contractEndDate && data.contractEndDate < data.hireDate) {
       return error("契約終了日は入社日より後にしてください。", "contractEndDate");
     }
@@ -610,7 +614,7 @@ function validateRules(type, id, data, item) {
       data.status !== "active" &&
       state.assignments.some((assignment) => assignment.memberId === id && assignment.status === "assigned")
     ) {
-      return error("ライセンスを利用中の社員は、在籍中以外にできません。先に返却してください。", "status");
+      return error("ライセンスを利用中の利用者は、在籍中以外にできません。先に返却してください。", "status");
     }
   }
   return null;
@@ -624,7 +628,7 @@ function validateRules(type, id, data, item) {
 function blockedReason(type, preset = null) {
   if (type === "assignment" && preset?.memberId) {
     const member = memberById(preset.memberId);
-    if (!member || member.status !== "active") return "在籍中の社員にだけ割り当てできます。";
+    if (!member || member.status !== "active") return "在籍中の利用者にだけ割り当てできます。";
   }
   if (type === "assignment" && preset?.licenseId) {
     const license = licenseById(preset.licenseId);
@@ -636,7 +640,7 @@ function blockedReason(type, preset = null) {
   }
   if (type === "assignment") {
     if (!state.members.some((member) => member.status === "active")) {
-      return "在籍中の社員がいません。先に社員を登録してください。";
+      return "在籍中の利用者がいません。先に利用者を登録してください。";
     }
     if (!state.licenses.some(isAssignable)) return "割り当てできる有効なライセンスがありません。";
   }
@@ -665,7 +669,7 @@ const SELF_FORMS = new Set(["profile", "changePassword"]);
 // 出品は、管理者でなくてもできる
 const PUBLIC_FORMS = new Set(["listing"]);
 
-// preset：新しく登録するときの初期値（例：社員の詳細から開いたら { memberId }）
+// preset：新しく登録するときの初期値（例：利用者の詳細から開いたら { memberId }）
 export function openForm(type, item = null, preset = null) {
   if (SELF_FORMS.has(type)) item = currentUser(); // 自分のアカウント以外は変更させない
   else if (!PUBLIC_FORMS.has(type) && !isAdmin()) return notify("この操作には管理者権限が必要です。", true);
@@ -684,7 +688,7 @@ export function openForm(type, item = null, preset = null) {
     return notify(
       emptyChoice.name === "licenseId"
         ? "割り当てできるライセンスがありません（すでに持っているか、空きがありません）。"
-        : "割り当てできる社員がいません（全員がすでに持っています）。",
+        : "割り当てできる利用者がいません（全員がすでに持っています）。",
       true,
     );
   }
@@ -746,7 +750,7 @@ function saveRelease(assignment, data) {
 function saveReleaseAll(member, data) {
   const targets = activeAssignmentsOf(member.id);
   targets.forEach((assignment) => releaseOne(assignment, data));
-  finish(`${member.name} さんのライセンス${targets.length}件を返却しました`);
+  finish(`${member.name}さんのライセンス${targets.length}件を返却しました`);
 }
 
 function saveProfile(user, data) {
