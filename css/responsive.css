@@ -290,3 +290,17 @@
     font-size: 16px;
   }
 }
+/* スマホ：横に並ぶメニューでは、区切り線を縦にする */
+@media (max-width: 600px) {
+  .nav-item[data-view="market"] {
+    margin: 0 0 0 9px;
+  }
+  .nav-item[data-view="market"]::after {
+    left: -7px;
+    right: auto;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    height: auto;
+  }
+}

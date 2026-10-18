@@ -304,3 +304,16 @@
   justify-content: center;
   margin-top: 16px;
 }
+/* マーケットの上に区切り線（管理する画面と、買う画面を分ける） */
+.nav-item[data-view="market"] {
+  margin-top: 17px;
+}
+.nav-item[data-view="market"]::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: -9px;
+  height: 1px;
+  background: var(--color-sidebar-border);
+}
