@@ -1,4 +1,4 @@
-// 詳細ダイアログ（ライセンス・ツール・社員の全項目を表示）
+// 詳細ダイアログ（ライセンス・ツール・利用者の全項目を表示）
 import { licenseById, memberById, state, toolById, usedCount } from "./state.js";
 import {
   $,
@@ -116,7 +116,7 @@ function licenseDetail(license) {
       [
         `<section class="detail-section">`,
         headingWith(`使っている人（${used}人）`, [
-          canAssign ? `<button type="button" class="link-button" data-assign-license="${license.id}">＋ 社員に割り当てる</button>` : "",
+          canAssign ? `<button type="button" class="link-button" data-assign-license="${license.id}">＋ 利用者に割り当てる</button>` : "",
         ]),
         holders.length ? `<ul class="detail-items">${holders.join("")}</ul>` : `<p class="muted">まだ割り当てられていません</p>`,
         canAssign ? "" : `<p class="field-hint">${esc(seatsLeft <= 0 ? "空きがないため、これ以上は割り当てできません。" : "有効でないか更新期限を過ぎているため、割り当てできません。")}</p>`,

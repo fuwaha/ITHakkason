@@ -21,7 +21,7 @@ function deleteBlockedReason(type, item) {
     type === "member" &&
     state.assignments.some((a) => a.memberId === item.id && a.status === "assigned")
   ) {
-    return "ライセンスを利用中の社員は削除できません。先に返却してください。";
+    return "ライセンスを利用中の利用者は削除できません。先に返却してください。";
   }
   return "";
 }
@@ -140,7 +140,7 @@ document.addEventListener("click", async (event) => {
 });
 
 function handleAdminAction({ edit, deleteType, release, releaseAll, assignMember, assignLicense, password, accountToggle, id }) {
-  // 詳細から割り当てるときは、社員かライセンスを入力済みでフォームを開く
+  // 詳細から割り当てるときは、利用者かライセンスを入力済みでフォームを開く
   if (assignMember) return openForm("assignment", null, { memberId: Number(assignMember) });
   if (assignLicense) return openForm("assignment", null, { licenseId: Number(assignLicense) });
   if (edit) {
@@ -152,7 +152,7 @@ function handleAdminAction({ edit, deleteType, release, releaseAll, assignMember
   if (release) return releaseAssignment(release);
   if (releaseAll) {
     const member = state.members.find((item) => item.id === Number(releaseAll));
-    if (!member) return notify("対象の社員が見つかりません。", true);
+    if (!member) return notify("対象の利用者が見つかりません。", true);
     return openForm("releaseAll", member);
   }
   if (password) {

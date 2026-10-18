@@ -13,7 +13,7 @@ export const TYPE_LABELS = {
   account: "アカウント",
   tool: "ツール",
   license: "ライセンス",
-  member: "社員",
+  member: "利用者",
   assignment: "割り当て",
   listing: "出品",
 };

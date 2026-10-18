@@ -107,7 +107,7 @@ export const noticeDeadline = (license) =>
     ? subtractDays(license.renewal, license.noticeDays)
     : "";
 
-// 社員がいなくなる予定日（退職・異動の予定日と契約終了日のうち早いほう）
+// 利用者がいなくなる予定日（退職・異動の予定日と契約終了日のうち早いほう）
 export function memberEnd(member) {
   const candidates = [
     { date: member?.leaveDate, label: "退職・異動" },
